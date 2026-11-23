@@ -3,439 +3,511 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PixelTunes 👑 Your Music Kingdom</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Charcoal Studio 🎵 Choose your Nirvana</title>
 
-    <!-- Google Fonts for authentic retro pixel aesthetic & crisp readability -->
+    <!-- Inter Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=VT323&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="styles.css">
 </head>
 
-<body class="theme-castle">
+<body>
 
     <!-- ========================================================
-         1. LANDING SCREEN (First-time / Unauthenticated View)
+         1. LANDING SCREEN (Before Login / Sign Up)
+         "Choose your Nirvana" perfectly centered + capacitive touch dots grid
          ======================================================== -->
-    <div id="landingScreen" class="landing-screen">
-        <!-- Pixel Starfield Ambient Canvas -->
-        <canvas id="starfieldCanvas" class="starfield-canvas"></canvas>
+    <div class="landing-screen" id="landingScreen">
+        <!-- Interactive Touch Dots Grid Canvas -->
+        <canvas class="landing-dots-canvas" id="landingDotsCanvas"></canvas>
 
-        <!-- Landing Header -->
-        <header class="landing-header">
+        <header class="landing-top-bar">
             <div class="brand-badge">
-                <img src="assets/themes/crown.png" alt="Crown" class="pixel-crown">
-                <div class="brand-titles">
-                    <span class="brand-name">PixelTunes</span>
-                    <span class="brand-tagline">Your Music Kingdom</span>
-                </div>
+                <div class="brand-symbol"><span class="symbol-dot"></span></div>
+                <span class="brand-name">Charcoal Studio</span>
             </div>
-            <div class="landing-auth-nav">
-                <button id="landingLoginNavBtn" class="pixel-btn pixel-btn-ghost" type="button">Log In</button>
-                <button id="landingSignupNavBtn" class="pixel-btn pixel-btn-primary" type="button">Sign Up</button>
+            <div class="landing-auth-buttons">
+                <button class="pill-btn-outline" id="landingLoginBtn" type="button">Log In</button>
+                <button class="pill-btn-solid" id="landingSignupBtn" type="button">Sign Up</button>
             </div>
         </header>
 
-        <!-- Landing Hero Section with Bold Headline and Floating 3 UIs -->
-        <main class="landing-hero">
-            <div class="landing-hero-content">
-                <div class="pixel-status-badge">✦ 16-BIT AUDIO SANCTUARY ✦</div>
-                <h1 class="landing-title">Choose your Nirvana</h1>
-                <h2 class="landing-subtitle">YOUR MUSIC KINGDOM AWAITS</h2>
-                <p class="landing-desc">
-                    Immerse yourself in a retro-pixel music realm. Upload your personal audio sanctuary, customize your enchanted kingdom across 3 handcrafted pixel realms, and experience music like never before.
-                </p>
-                <div class="landing-cta-row">
-                    <button id="heroSignupBtn" class="pixel-btn pixel-btn-primary pixel-btn-lg" type="button">
-                        <span class="btn-icon">👑</span> Sign Up &amp; Claim Realm
-                    </button>
-                    <button id="heroLoginBtn" class="pixel-btn pixel-btn-secondary pixel-btn-lg" type="button">
-                        <span class="btn-icon">⚔️</span> Log In
-                    </button>
-                    <button id="heroExploreBtn" class="pixel-btn pixel-btn-ghost pixel-btn-lg" type="button">
-                        <span class="btn-icon">▶</span> Enter as Guest
-                    </button>
-                </div>
-            </div>
+        <main class="landing-hero-center">
+            <h1 class="landing-main-title">Choose your Nirvana</h1>
+            <p class="landing-main-desc">
+                Your personal audio sanctuary. Add tracks, browse tactile 3D vinyl crates, and listen in acoustic peace.
+            </p>
 
-            <!-- 3 Floating UIs Showcase Animation -->
-            <div class="floating-showcase" id="floatingShowcase">
-                <div class="floating-stage-glow"></div>
-
-                <!-- Theme 1: Castle Kingdom (Center / Floating) -->
-                <div class="floating-card floating-card-castle" data-target-theme="castle" title="Castle Kingdom">
-                    <div class="floating-card-tag">🏰 Theme 1 &bull; Castle Kingdom (Default)</div>
-                    <div class="floating-card-img-wrap">
-                        <img src="assets/themes/preview_castle.png" alt="Castle Kingdom UI">
-                    </div>
-                    <div class="floating-card-footer">
-                        <span>A royal music hall in a pixel castle</span>
-                        <span class="pill-badge">Purple &bull; Gold</span>
-                    </div>
-                </div>
-
-                <!-- Theme 2: Forest Sanctuary (Left / Floating) -->
-                <div class="floating-card floating-card-forest" data-target-theme="forest" title="Forest Sanctuary">
-                    <div class="floating-card-tag">🍃 Theme 2 &bull; Forest Sanctuary</div>
-                    <div class="floating-card-img-wrap">
-                        <img src="assets/themes/preview_forest.png" alt="Forest Sanctuary UI">
-                    </div>
-                    <div class="floating-card-footer">
-                        <span>A peaceful nature retreat for your music</span>
-                        <span class="pill-badge">Emerald &bull; Moss</span>
-                    </div>
-                </div>
-
-                <!-- Theme 3: Snowpeak Fortress (Right / Floating) -->
-                <div class="floating-card floating-card-snowpeak" data-target-theme="snowpeak" title="Snowpeak Fortress">
-                    <div class="floating-card-tag">❄️ Theme 3 &bull; Snowpeak Fortress</div>
-                    <div class="floating-card-img-wrap">
-                        <img src="assets/themes/preview_snowpeak.png" alt="Snowpeak Fortress UI">
-                    </div>
-                    <div class="floating-card-footer">
-                        <span>A calm and cozy fortress in the mountains</span>
-                        <span class="pill-badge">Arctic &bull; Cyan</span>
-                    </div>
-                </div>
+            <div class="landing-actions-row">
+                <button class="pill-btn-solid pill-btn-hero" id="heroSignupActionBtn" type="button">
+                    Sign Up to Build Library
+                </button>
+                <button class="pill-btn-outline pill-btn-hero" id="heroGuestActionBtn" type="button">
+                    Enter as Guest
+                </button>
             </div>
         </main>
     </div>
 
 
     <!-- ========================================================
-         2. MAIN PIXELTUNES APPLICATION
+         2. MAIN MUSIC APP (Logged in or Guest)
          ======================================================== -->
-    <div id="appContainer" class="app-container" style="display: none;">
+    <div class="app-container" id="appContainer" style="display: none;">
 
-        <!-- Pixel Header -->
-        <header class="app-header">
-            <!-- Brand -->
-            <div class="brand-badge" id="brandLogoHome">
-                <img src="assets/themes/crown.png" alt="Crown" class="pixel-crown">
-                <div class="brand-titles">
-                    <span class="brand-name">PixelTunes</span>
-                    <span class="brand-tagline">Your Music Kingdom</span>
+        <div class="app-main-layout">
+
+            <!-- A. Left Sidebar (Desktop View) -->
+            <aside class="sidebar" id="appSidebar">
+                <div class="sidebar-brand">
+                    <div class="brand-symbol"><span class="symbol-dot"></span></div>
+                    <div class="brand-text">
+                        <span class="brand-name">Charcoal</span>
+                        <span class="brand-sub">Studio</span>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Search Bar -->
-            <div class="pixel-search-wrap">
-                <span class="search-icon">🔍</span>
-                <input
-                    type="text"
-                    id="searchInput"
-                    class="pixel-search-input"
-                    placeholder="Search tracks, artists, or realms..."
-                    autocomplete="off"
-                >
-                <button id="clearSearchBtn" class="clear-search-btn" type="button" aria-label="Clear search" style="display: none;">×</button>
-            </div>
-
-            <!-- Top Right Action Controls -->
-            <div class="header-right-actions">
-                <!-- Theme Switcher Button -->
-                <button id="openThemePickerBtn" class="pixel-btn pixel-theme-toggle-btn" type="button" title="Switch Pixel Theme">
-                    <img src="assets/themes/crown.png" alt="Theme" class="btn-crown-icon">
-                    <span id="activeThemeLabel">Castle Kingdom</span>
-                </button>
-
-                <!-- Auth Buttons / User Profile -->
-                <div id="authButtons" class="auth-buttons-wrap">
-                    <!-- Injected by JavaScript: Either Log in/Sign up or Hi User + Log out -->
-                </div>
-            </div>
-        </header>
-
-        <!-- Main Grid Layout (Sidebar, Center Stage, Up Next) -->
-        <div class="kingdom-layout">
-
-            <!-- =========================
-                 LEFT SIDEBAR NAVIGATION
-                 ========================= -->
-            <aside class="pixel-sidebar">
-                <nav class="sidebar-nav">
-                    <button class="nav-item active" id="navHome" type="button">
-                        <span class="nav-icon">🏠</span>
-                        <span class="nav-text">Home</span>
+                <nav class="sidebar-menu">
+                    <span class="menu-heading">Menu</span>
+                    <button class="menu-item active" id="sidebarNavHome" type="button">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path>
+                        </svg>
+                        <span>Home</span>
                     </button>
-                    <button class="nav-item" id="navExplore" type="button">
-                        <span class="nav-icon">🔍</span>
-                        <span class="nav-text">Explore</span>
+                    <button class="menu-item" id="sidebarNavSearch" type="button">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <span>Search</span>
                     </button>
-                    <button class="nav-item" id="navLibrary" type="button">
-                        <span class="nav-icon">📚</span>
-                        <span class="nav-text">Library</span>
-                        <span class="nav-count" id="libraryCount">0</span>
-                    </button>
-                    <button class="nav-item" id="navPlaylists" type="button">
-                        <span class="nav-icon">🎵</span>
-                        <span class="nav-text">Playlists</span>
-                    </button>
-                    <button class="nav-item" id="navLiked" type="button">
-                        <span class="nav-icon">💜</span>
-                        <span class="nav-text">Liked Songs</span>
-                        <span class="nav-count" id="likedCount">0</span>
+                    <button class="menu-item" id="sidebarNavCrate" type="button">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <rect x="2" y="2" width="20" height="20" rx="3"></rect>
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <circle cx="12" cy="12" r="2"></circle>
+                        </svg>
+                        <span>Vinyl Crate</span>
                     </button>
                 </nav>
 
-                <!-- Add Song Quick Button -->
-                <div class="sidebar-action-wrap">
-                    <button class="pixel-btn pixel-btn-primary pixel-btn-block" id="sidebarAddSongBtn" type="button">
-                        <span class="btn-icon">+</span> Add Song
-                    </button>
+                <div class="sidebar-section">
+                    <span class="menu-heading">Library</span>
+                    <div class="playlist-nav-list">
+                        <button class="playlist-nav-item active" id="sidebarAlbumLink" type="button">
+                            <span class="playlist-dot"></span>
+                            <span>All Tracks</span>
+                            <span class="badge-count" id="sidebarSongCount">0</span>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Cozy Pixel Character Corner (from user reference) -->
-                <div class="sidebar-character-card">
-                    <div class="pixel-character-scene">
-                        <div class="character-adventurer" title="Listening to the kingdom tunes..."></div>
-                        <div class="character-dog" title="Zzz... peaceful music companion"></div>
-                        <div class="character-sword"></div>
-                    </div>
-                    <div class="character-caption">
-                        <span class="character-status">● Safe in Realm</span>
-                    </div>
+                <div class="sidebar-footer">
+                    <button class="sidebar-add-btn" id="sidebarAddSongBtn" type="button">
+                        <span class="add-plus-icon">+</span>
+                        <span>Add Songs</span>
+                    </button>
                 </div>
             </aside>
 
 
-            <!-- =========================
-                 CENTER STAGE (Nirvana & Now Playing)
-                 ========================= -->
-            <main class="pixel-stage" id="pixelStage">
+            <!-- B. Main Content Viewport -->
+            <main class="main-viewport" id="mainViewport">
 
-                <!-- Themed Scenic Arch Backdrop -->
-                <div class="stage-stone-arch">
+                <!-- Top Desktop/Mobile Nav Header -->
+                <header class="top-header-bar">
+                    <div class="mobile-brand-title">Charcoal Studio</div>
 
-                    <!-- Hanging Theme Banner on Left of Arch -->
-                    <div class="stage-hanging-banner" id="stageBanner">
-                        <div class="banner-cloth">
-                            <span class="banner-emblem" id="bannerEmblem">🎵</span>
+                    <!-- Search Input -->
+                    <div class="search-wrap" id="searchWrap">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="search-icon">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" id="searchInput" placeholder="Search tracks or artists..." autocomplete="off">
+                        <button class="clear-search-btn" id="clearSearchBtn" type="button" style="display: none;">×</button>
+                    </div>
+
+                    <!-- Top Action Buttons -->
+                    <div class="top-header-actions">
+                        <button class="pill-btn-outline desktop-only-btn" id="topCrateBtn" type="button">
+                            <span>💿</span> Vinyl Crate
+                        </button>
+                        <button class="pill-btn-solid" id="topAddTrackBtn" type="button">
+                            <span>+</span> Add Song
+                        </button>
+                        <div class="auth-status-pill" id="userProfilePill">
+                            <!-- Injected by JS: User name or Log In button -->
                         </div>
                     </div>
+                </header>
 
-                    <!-- Glowing Torches on Arch Posts -->
-                    <div class="arch-torch arch-torch-left">
-                        <div class="torch-flame"></div>
-                        <div class="torch-bracket"></div>
-                    </div>
-                    <div class="arch-torch arch-torch-right">
-                        <div class="torch-flame"></div>
-                        <div class="torch-bracket"></div>
-                    </div>
+                <!-- Scrollable View Body -->
+                <div class="main-scroll-body" id="mainScrollBody">
 
-                    <!-- Window Scenery Layer (Castle Dusk / Forest Falls / Snow Aurora) -->
-                    <div class="scenic-window" id="scenicWindow">
-                        <div class="scenic-stars"></div>
-                        <div class="scenic-aurora"></div>
-                        <div class="scenic-landscape" id="scenicLandscape"></div>
-                    </div>
+                    <!-- =========================
+                         1. ALBUM HERO BANNER
+                         (Clean hero without hardcoded song text)
+                         ========================= -->
+                    <section class="album-hero" id="albumHero">
+                        <div class="hero-cover-card">
+                            <img src="assets/themes/cover_charcoal.png" alt="Cover" class="hero-cover-img" id="heroCoverImg">
+                        </div>
 
-                    <!-- Stage Center Content Container -->
-                    <div class="stage-content" id="stageContent">
+                        <div class="hero-details">
+                            <span class="hero-meta" id="heroAlbumMeta">Library • 0 songs</span>
+                            <h1 class="hero-title" id="heroAlbumTitle">My Music</h1>
+                            <p class="hero-artist" id="heroAlbumArtist">Personal Sanctuary</p>
 
-                        <!-- =========================
-                             A. NIRVANA EMPTY STATE
-                             (Shown when no songs exist)
-                             ========================= -->
-                        <div class="nirvana-empty-state" id="nirvanaEmptyState">
-                            <div class="nirvana-sparkle-badge">✦ REALM SILENT ✦</div>
-                            <h1 class="nirvana-headline">Choose your Nirvana</h1>
-                            <p class="nirvana-description">
-                                Your music kingdom is waiting for its first anthem. Add your personal audio files to ignite the kingdom torches and bring this realm to life!
-                            </p>
-
-                            <!-- Dropzone & Upload Button -->
-                            <div class="nirvana-dropzone" id="nirvanaDropzone">
-                                <div class="dropzone-icon">⚡</div>
-                                <div class="dropzone-text">Drag &amp; drop audio files here</div>
-                                <div class="dropzone-sub">or click below to browse</div>
-
-                                <button class="pixel-btn pixel-btn-primary pixel-btn-lg" id="nirvanaAddBtn" type="button">
-                                    <span class="btn-icon">+</span> Add Your First Song
+                            <!-- Hero Actions Row: Play, Shuffle, Add, Crate Toggle -->
+                            <div class="hero-actions">
+                                <button class="pill-btn-solid hero-btn-play" id="heroPlayBtn" type="button">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <polygon points="6 3 20 12 6 21 6 3"></polygon>
+                                    </svg>
+                                    <span>Play</span>
                                 </button>
-                            </div>
 
-                            <div class="nirvana-perks">
-                                <span class="perk-pill">🔒 100% Local &amp; Private</span>
-                                <span class="perk-pill">🕹 16-Bit Sound Architecture</span>
-                                <span class="perk-pill">🎨 3 Swappable Pixel Realms</span>
-                            </div>
-                        </div>
+                                <button class="pill-btn-outline hero-btn-shuffle" id="heroShuffleBtn" type="button">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                        <polyline points="16 3 21 3 21 8"></polyline>
+                                        <line x1="4" y1="20" x2="21" y2="3"></line>
+                                        <polyline points="21 16 21 21 16 21"></polyline>
+                                        <line x1="15" y1="15" x2="21" y2="21"></line>
+                                        <line x1="4" y1="4" x2="9" y2="9"></line>
+                                    </svg>
+                                    <span>Shuffle</span>
+                                </button>
 
-                        <!-- =========================
-                             B. ACTIVE NOW PLAYING CARD
-                             (Shown when song is loaded)
-                             ========================= -->
-                        <div class="now-playing-card" id="nowPlayingCard" style="display: none;">
+                                <button class="icon-circle-btn" id="heroAddIconBtn" type="button" title="Add song">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    </svg>
+                                </button>
 
-                            <!-- Center Artwork Frame -->
-                            <div class="album-art-stage-frame">
-                                <img src="assets/themes/cover_castle.png" alt="Now Playing Album Art" id="stageAlbumArt" class="stage-album-art">
-                                <div class="art-pixel-glow"></div>
-                            </div>
-
-                            <!-- Track Info & Like Button -->
-                            <div class="stage-track-meta">
-                                <div class="meta-texts">
-                                    <h2 class="stage-track-title" id="stageTrackTitle">Castle in the Clouds</h2>
-                                    <p class="stage-track-artist" id="stageTrackArtist">Azure Beats</p>
+                                <!-- View Tabs: Tracklist vs 3D Vinyl Crate -->
+                                <div class="view-tabs-group">
+                                    <button class="view-tab-pill active" id="tabViewTracklist" type="button">
+                                        <span>Tracklist</span>
+                                    </button>
+                                    <button class="view-tab-pill" id="tabViewCrate" type="button">
+                                        <span>Vinyl Crate</span>
+                                    </button>
                                 </div>
-                                <button class="stage-like-btn" id="stageLikeBtn" type="button" aria-label="Like song" title="Add to Liked Songs">
-                                    <span class="heart-icon" id="stageLikeIcon">🤍</span>
-                                </button>
                             </div>
+                        </div>
+                    </section>
 
-                            <!-- Progress Seekbar -->
-                            <div class="stage-progress-wrap">
-                                <span class="time-label" id="stageCurrentTime">0:00</span>
-                                <div class="progress-bar-container" id="stageProgressContainer">
-                                    <input
-                                        type="range"
-                                        id="stageProgressBar"
-                                        class="pixel-seek-slider"
-                                        min="0"
-                                        max="100"
-                                        value="0"
-                                    >
-                                </div>
-                                <span class="time-label" id="stageDuration">0:00</span>
+
+                    <!-- =========================
+                         2. "CHOOSE YOUR NIRVANA" EMPTY STATE
+                         (Shown when 0 songs exist in library)
+                         ========================= -->
+                    <section class="nirvana-empty-card" id="nirvanaEmptyCard" style="display: none;">
+                        <div class="nirvana-pill-badge">CHOOSE YOUR NIRVANA</div>
+                        <h2 class="nirvana-title">Your library is silent</h2>
+                        <p class="nirvana-desc">
+                            Add your personal audio tracks to bring this player to life. Choose your Nirvana with your favorite sound collection.
+                        </p>
+                        <div class="nirvana-drop-box" id="nirvanaDropBox">
+                            <span class="nirvana-drop-icon">🎵</span>
+                            <span class="nirvana-drop-title">Drag &amp; drop audio files here</span>
+                            <span class="nirvana-drop-sub">or click below to browse files</span>
+                            <button class="pill-btn-solid" id="nirvanaAddBtn" type="button">
+                                + Add Your First Track
+                            </button>
+                        </div>
+                    </section>
+
+
+                    <!-- =========================
+                         3. TRACKLIST VIEW
+                         ========================= -->
+                    <section class="tracklist-container" id="tracklistSection">
+                        <div class="tracklist-header-row">
+                            <span class="col-index">#</span>
+                            <span class="col-title">Title</span>
+                            <span class="col-artist">Artist</span>
+                            <span class="col-duration">Duration</span>
+                            <span class="col-actions">Actions</span>
+                        </div>
+                        <div class="tracklist-rows-list" id="tracklistRowsList">
+                            <!-- Populated dynamically by JS -->
+                        </div>
+                    </section>
+
+
+                    <!-- =========================
+                         4. FULL BANNER 3D VINYL CRATE DECK
+                         ========================= -->
+                    <section class="vinyl-crate-deck-section" id="vinylCrateSection" style="display: none;">
+                        <div class="crate-deck-header">
+                            <div>
+                                <h3 class="crate-deck-title">Tactile Vinyl Record Crate</h3>
+                                <p class="crate-deck-sub">Full-banner record sleeves. Scroll through and click any sleeve to pull it out and play.</p>
                             </div>
-
-                            <!-- Themed Center Controls Row -->
-                            <div class="stage-controls">
-                                <!-- Shuffle Button -->
-                                <button class="pixel-ctrl-btn" id="stageShuffleBtn" type="button" title="Shuffle" aria-label="Shuffle">
-                                    🔀
-                                </button>
-
-                                <!-- Previous Track Button -->
-                                <button class="pixel-ctrl-btn" id="stagePrevBtn" type="button" title="Previous Track" aria-label="Previous Track">
-                                    ⏮
-                                </button>
-
-                                <!-- Center Play/Pause Pixel Badge -->
-                                <button class="stage-play-badge" id="stagePlayBtn" type="button" title="Play or Pause" aria-label="Play or Pause">
-                                    <span class="play-badge-icon" id="stagePlayIcon">▶</span>
-                                </button>
-
-                                <!-- Next Track Button -->
-                                <button class="pixel-ctrl-btn" id="stageNextBtn" type="button" title="Next Track" aria-label="Next Track">
-                                    ⏭
-                                </button>
-
-                                <!-- Repeat Button -->
-                                <button class="pixel-ctrl-btn" id="stageRepeatBtn" type="button" title="Repeat" aria-label="Repeat">
-                                    🔁
-                                </button>
-                            </div>
-
+                            <span class="crate-instruction-badge">✦ Click sleeve to play</span>
                         </div>
 
-                    </div>
-                </div>
+                        <!-- 3D Vinyl Stack Rack with full-width generous sizing -->
+                        <div class="vinyl-crate-chamber" id="vinylCrateChamber">
+                            <div class="vinyl-full-banner-stack" id="vinylFullBannerStack">
+                                <!-- Populated dynamically by JS with large 3D vinyl jackets -->
+                            </div>
+                        </div>
+                    </section>
 
-                <!-- Explore / Library Grid Views (when toggled from sidebar) -->
-                <div class="stage-secondary-view" id="stageSecondaryView" style="display: none;">
-                    <div class="secondary-view-header">
-                        <button class="pixel-btn pixel-btn-ghost" id="backToPlayerBtn" type="button">← Back to Player</button>
-                        <h2 id="secondaryViewTitle">All Songs</h2>
-                        <button class="pixel-btn pixel-btn-primary" id="secondaryAddSongBtn" type="button">+ Add Song</button>
-                    </div>
-                    <div class="secondary-song-grid" id="secondarySongGrid">
-                        <!-- Dynamic Cards -->
-                    </div>
                 </div>
 
             </main>
 
 
-            <!-- =========================
-                 RIGHT COLUMN ("Up Next" Panel)
-                 ========================= -->
-            <aside class="pixel-queue-panel">
-                <!-- Up Next Banner Header -->
-                <div class="queue-header-banner">
-                    <div class="queue-title-row">
-                        <span class="queue-icon">📜</span>
-                        <h3 class="queue-title">Up Next</h3>
-                    </div>
-                    <button class="pixel-btn pixel-btn-sm" id="queueAddSongBtn" type="button" title="Add track to queue">+ Add</button>
+            <!-- C. Right Desktop Now Playing Panel -->
+            <aside class="desktop-panel" id="desktopPanel">
+                <div class="panel-header">
+                    <span class="panel-title">Now Playing</span>
                 </div>
-
-                <!-- Song Queue List -->
-                <div class="queue-list" id="queueList">
-                    <!-- Populated dynamically by JS -->
+                <div class="panel-art-card">
+                    <img src="assets/themes/cover_charcoal.png" alt="Artwork" class="panel-art-img" id="panelArtImg">
                 </div>
-
-                <!-- Queue Empty State -->
-                <div class="queue-empty" id="queueEmpty" style="display: none;">
-                    <span class="queue-empty-icon">🎵</span>
-                    <p>No tracks in queue.</p>
-                    <button class="pixel-btn pixel-btn-sm pixel-btn-primary" id="queueEmptyAddBtn" type="button">Add First Track</button>
+                <div class="panel-meta">
+                    <h3 class="panel-track-name" id="panelTrackName">No track selected</h3>
+                    <p class="panel-track-artist" id="panelTrackArtist">Add audio to begin</p>
+                </div>
+                <div class="panel-queue-wrap">
+                    <span class="queue-heading">Up Next</span>
+                    <div class="panel-queue-items" id="panelQueueItems"></div>
                 </div>
             </aside>
 
         </div>
 
 
-        <!-- =========================
-             BOTTOM PERSISTENT PLAYER BAR
-             ========================= -->
-        <footer class="pixel-bottom-bar" id="bottomPlayerBar">
-            <!-- Track Info -->
-            <div class="bottom-track-info">
-                <img src="assets/themes/cover_castle.png" alt="Cover" class="bottom-cover" id="bottomCover">
-                <div class="bottom-text-wrap">
-                    <span class="bottom-title" id="bottomTitle">Castle in the Clouds</span>
-                    <span class="bottom-artist" id="bottomArtist">Azure Beats</span>
-                </div>
-                <button class="bottom-like-btn" id="bottomLikeBtn" type="button" title="Like song">
-                    <span id="bottomLikeIcon">🤍</span>
+        <!-- ========================================================
+             3. MOBILE FULL-SCREEN "NOW PLAYING" OVERLAY
+             ======================================================== -->
+        <div class="mobile-now-playing-overlay" id="mobileNowPlayingOverlay" style="display: none;">
+            <div class="mobile-np-header">
+                <button class="mobile-np-back-btn" id="mobileNpCollapseBtn" type="button" aria-label="Minimize">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+                <span class="mobile-np-heading">Now Playing</span>
+                <button class="mobile-np-queue-btn" id="mobileNpQueueBtn" type="button" aria-label="Queue/Crate">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                        <circle cx="3" cy="6" r="1"></circle>
+                        <circle cx="3" cy="12" r="1"></circle>
+                        <circle cx="3" cy="18" r="1"></circle>
+                    </svg>
                 </button>
             </div>
 
-            <!-- Controls & Seekbar -->
-            <div class="bottom-center-ctrls">
-                <div class="bottom-buttons-row">
-                    <button class="bottom-btn" id="bottomShuffleBtn" type="button" title="Shuffle">🔀</button>
-                    <button class="bottom-btn" id="bottomPrevBtn" type="button" title="Previous">⏮</button>
-                    <button class="bottom-play-btn" id="bottomPlayBtn" type="button" title="Play or Pause">
-                        <span id="bottomPlayIcon">▶</span>
-                    </button>
-                    <button class="bottom-btn" id="bottomNextBtn" type="button" title="Next">⏭</button>
-                    <button class="bottom-btn" id="bottomRepeatBtn" type="button" title="Repeat">🔁</button>
-                </div>
+            <div class="mobile-np-art-wrap">
+                <img src="assets/themes/cover_charcoal.png" alt="Artwork" class="mobile-np-art-img" id="mobileNpArtImg">
+            </div>
 
-                <div class="bottom-seek-row">
-                    <span class="bottom-time" id="bottomCurrentTime">0:00</span>
-                    <input
-                        type="range"
-                        id="bottomProgressBar"
-                        class="pixel-seek-slider"
-                        min="0"
-                        max="100"
-                        value="0"
-                    >
-                    <span class="bottom-time" id="bottomDuration">0:00</span>
+            <div class="mobile-np-meta-row">
+                <div class="mobile-np-title-col">
+                    <h2 class="mobile-np-song-title" id="mobileNpSongTitle">No track selected</h2>
+                    <p class="mobile-np-song-artist" id="mobileNpSongArtist">Add audio to begin</p>
                 </div>
             </div>
 
-            <!-- Volume & Settings -->
-            <div class="bottom-right-ctrls">
-                <button class="volume-btn" id="muteToggleBtn" type="button" title="Mute/Unmute">🔊</button>
-                <input
-                    type="range"
-                    id="volumeSlider"
-                    class="pixel-volume-slider"
-                    min="0"
-                    max="100"
-                    value="80"
-                    title="Volume"
-                >
-                <button class="theme-quick-btn" id="bottomThemeBtn" type="button" title="Change Theme">⚙️</button>
+            <div class="mobile-waveform-section">
+                <div class="mobile-waveform-bars" id="mobileWaveformBars">
+                    <!-- Dynamic Waveform Bars -->
+                </div>
+                <div class="mobile-waveform-times">
+                    <span id="mobileNpCurrentTime">0:00</span>
+                    <span id="mobileNpDuration">0:00</span>
+                </div>
+            </div>
+
+            <div class="mobile-np-controls">
+                <button class="mobile-ctrl-btn" id="mobileShuffleBtn" type="button" title="Shuffle" aria-label="Shuffle">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <polyline points="16 3 21 3 21 8"></polyline>
+                        <line x1="4" y1="20" x2="21" y2="3"></line>
+                        <polyline points="21 16 21 21 16 21"></polyline>
+                        <line x1="15" y1="15" x2="21" y2="21"></line>
+                        <line x1="4" y1="4" x2="9" y2="9"></line>
+                    </svg>
+                </button>
+
+                <button class="mobile-ctrl-btn" id="mobilePrevBtn" type="button" title="Previous" aria-label="Previous">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                        <polygon points="19 20 9 12 19 4 19 20"></polygon>
+                        <line x1="5" y1="19" x2="5" y2="5"></line>
+                    </svg>
+                </button>
+
+                <button class="mobile-main-play-circle" id="mobilePlayBtn" type="button" title="Play or Pause" aria-label="Play or Pause">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" id="mobilePlaySvg">
+                        <polygon points="6 3 20 12 6 21 6 3"></polygon>
+                    </svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" id="mobilePauseSvg" style="display: none;">
+                        <rect x="6" y="4" width="4" height="16"></rect>
+                        <rect x="14" y="4" width="4" height="16"></rect>
+                    </svg>
+                </button>
+
+                <button class="mobile-ctrl-btn" id="mobileNextBtn" type="button" title="Next" aria-label="Next">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                        <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                        <line x1="19" y1="5" x2="19" y2="19"></line>
+                    </svg>
+                </button>
+
+                <button class="mobile-ctrl-btn" id="mobileRepeatBtn" type="button" title="Repeat" aria-label="Repeat">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                        <polyline points="17 1 21 5 17 9"></polyline>
+                        <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                        <polyline points="7 23 3 19 7 15"></polyline>
+                        <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                    </svg>
+                    <span class="repeat-one-indicator" id="mobileRepeatOneTag" style="display: none;">1</span>
+                </button>
+            </div>
+        </div>
+
+
+        <!-- ========================================================
+             4. MOBILE FLOATING MINI-PLAYER PILL
+             ======================================================== -->
+        <div class="mobile-floating-mini-player" id="mobileFloatingMiniPlayer">
+            <img src="assets/themes/cover_charcoal.png" alt="Cover" class="mobile-mini-thumb" id="mobileMiniThumb">
+            <div class="mobile-mini-texts">
+                <span class="mobile-mini-title" id="mobileMiniTitle">No track selected</span>
+                <span class="mobile-mini-artist" id="mobileMiniArtist">Add audio to begin</span>
+            </div>
+            <button class="mobile-mini-play-btn" id="mobileMiniPlayBtn" type="button" aria-label="Play/Pause">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" id="mobileMiniPlaySvg">
+                    <polygon points="6 3 20 12 6 21 6 3"></polygon>
+                </svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" id="mobileMiniPauseSvg" style="display: none;">
+                    <rect x="6" y="4" width="4" height="16"></rect>
+                    <rect x="14" y="4" width="4" height="16"></rect>
+                </svg>
+            </button>
+        </div>
+
+
+        <!-- ========================================================
+             5. MOBILE 3-BUTTON FOOTER
+             (Strictly 3 buttons: Home, Search, Crate)
+             ======================================================== -->
+        <nav class="mobile-three-button-footer" id="mobileThreeButtonFooter">
+            <button class="mobile-footer-tab active" id="mobTabHome" type="button">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"></path>
+                </svg>
+                <span>Home</span>
+            </button>
+
+            <button class="mobile-footer-tab" id="mobTabSearch" type="button">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <span>Search</span>
+            </button>
+
+            <button class="mobile-footer-tab" id="mobTabCrate" type="button">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <rect x="2" y="2" width="20" height="20" rx="3"></rect>
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <circle cx="12" cy="12" r="2"></circle>
+                </svg>
+                <span>Crate</span>
+            </button>
+        </nav>
+
+
+        <!-- ========================================================
+             6. DESKTOP BOTTOM PERSISTENT PLAYER BAR
+             ======================================================== -->
+        <footer class="desktop-bottom-bar" id="desktopBottomBar">
+            <div class="dt-left-track">
+                <img src="assets/themes/cover_charcoal.png" alt="Cover" class="dt-thumb-img" id="dtThumbImg">
+                <div class="dt-track-info">
+                    <span class="dt-title" id="dtTitle">No track selected</span>
+                    <span class="dt-artist" id="dtArtist">Add audio to begin</span>
+                </div>
+            </div>
+
+            <div class="dt-center-player">
+                <div class="dt-controls-row">
+                    <button class="ctrl-btn" id="dtShuffleBtn" type="button" title="Shuffle" aria-label="Shuffle">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <polyline points="16 3 21 3 21 8"></polyline>
+                            <line x1="4" y1="20" x2="21" y2="3"></line>
+                            <polyline points="21 16 21 21 16 21"></polyline>
+                            <line x1="15" y1="15" x2="21" y2="21"></line>
+                            <line x1="4" y1="4" x2="9" y2="9"></line>
+                        </svg>
+                    </button>
+
+                    <button class="ctrl-btn" id="dtPrevBtn" type="button" title="Previous" aria-label="Previous">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                            <polygon points="19 20 9 12 19 4 19 20"></polygon>
+                            <line x1="5" y1="19" x2="5" y2="5"></line>
+                        </svg>
+                    </button>
+
+                    <button class="main-play-circle" id="dtPlayBtn" type="button" title="Play or Pause" aria-label="Play or Pause">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" id="dtPlaySvg">
+                            <polygon points="6 3 20 12 6 21 6 3"></polygon>
+                        </svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" id="dtPauseSvg" style="display: none;">
+                            <rect x="6" y="4" width="4" height="16"></rect>
+                            <rect x="14" y="4" width="4" height="16"></rect>
+                        </svg>
+                    </button>
+
+                    <button class="ctrl-btn" id="dtNextBtn" type="button" title="Next" aria-label="Next">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                            <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                            <line x1="19" y1="5" x2="19" y2="19"></line>
+                        </svg>
+                    </button>
+
+                    <button class="ctrl-btn" id="dtRepeatBtn" type="button" title="Repeat" aria-label="Repeat">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                            <polyline points="17 1 21 5 17 9"></polyline>
+                            <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                            <polyline points="7 23 3 19 7 15"></polyline>
+                            <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                        </svg>
+                        <span class="repeat-one-indicator" id="dtRepeatOneTag" style="display: none;">1</span>
+                    </button>
+                </div>
+
+                <div class="dt-waveform-row">
+                    <span class="dt-time" id="dtCurrentTime">0:00</span>
+                    <div class="dt-waveform-track" id="dtWaveformTrack">
+                        <!-- Dynamic Waveform Bars -->
+                    </div>
+                    <span class="dt-time" id="dtDuration">0:00</span>
+                </div>
+            </div>
+
+            <div class="dt-right-controls">
+                <button class="icon-nav-action-btn" id="dtCrateShortcutBtn" type="button" title="Toggle 3D Vinyl Crate">
+                    💿
+                </button>
+                <div class="dt-volume-group">
+                    <button class="vol-btn" id="dtMuteBtn" type="button">🔊</button>
+                    <input type="range" id="dtVolumeSlider" class="dt-vol-range" min="0" max="100" value="80">
+                </div>
             </div>
         </footer>
 
@@ -443,247 +515,139 @@
 
 
     <!-- ========================================================
-         3. CHOOSE YOUR THEME MODAL (Post-Signup & Theme Switcher)
+         7. ADD SONG MODAL (Zero Scrollbars)
          ======================================================== -->
-    <div class="pixel-modal" id="themePickerModal" aria-hidden="true" style="display: none;">
-        <div class="pixel-modal-backdrop" id="themePickerBackdrop"></div>
-        <div class="pixel-modal-box theme-modal-box">
-
-            <div class="theme-modal-header">
-                <img src="assets/themes/crown.png" alt="Crown" class="theme-crown-large">
-                <h2 class="theme-modal-title">Choose Your Theme</h2>
-                <p class="theme-modal-subtitle">Customize the look and feel of your music kingdom</p>
-                <button class="pixel-close-btn" id="closeThemeModalBtn" type="button" aria-label="Close">×</button>
+    <div class="modal-overlay" id="addSongModal" style="display: none;">
+        <div class="modal-backdrop" id="addSongBackdrop"></div>
+        <div class="modal-card-compact">
+            <div class="modal-compact-header">
+                <h3>Add Song to Library</h3>
+                <button class="modal-close-icon-btn" id="closeAddSongModalBtn" type="button">×</button>
             </div>
 
-            <!-- 3 Theme Options from Screenshot -->
-            <div class="theme-cards-list">
+            <form id="addSongForm" class="modal-compact-form">
+                <div class="form-row-group">
+                    <label for="newSongTitle">Track Title *</label>
+                    <input type="text" id="newSongTitle" placeholder="e.g. My Favorite Song" required autocomplete="off">
+                </div>
 
-                <!-- Theme 1: Castle Kingdom (Default) -->
-                <div class="theme-select-card selected" data-theme-id="castle" id="themeOptionCastle">
-                    <div class="theme-thumb-wrap">
-                        <img src="assets/themes/thumb_castle.png" alt="Castle Kingdom" class="theme-thumb-img">
-                    </div>
-                    <div class="theme-details">
-                        <div class="theme-option-title">Castle Kingdom</div>
-                        <div class="theme-option-desc">A royal music hall in a pixel castle.</div>
-                    </div>
-                    <div class="theme-radio-box">
-                        <span class="theme-radio-check">✓</span>
+                <div class="form-row-group">
+                    <label for="newSongArtist">Artist *</label>
+                    <input type="text" id="newSongArtist" placeholder="e.g. Artist Name" required autocomplete="off">
+                </div>
+
+                <div class="form-row-group">
+                    <label for="newSongFile">Audio File *</label>
+                    <div class="file-compact-dropzone" id="audioDropzone">
+                        <span class="compact-drop-icon">🎵</span>
+                        <span class="compact-drop-label" id="audioDropLabel">Choose audio file or drag &amp; drop here</span>
+                        <input type="file" id="newSongFile" accept="audio/*" required>
                     </div>
                 </div>
 
-                <!-- Theme 2: Forest Sanctuary -->
-                <div class="theme-select-card" data-theme-id="forest" id="themeOptionForest">
-                    <div class="theme-thumb-wrap">
-                        <img src="assets/themes/thumb_forest.png" alt="Forest Sanctuary" class="theme-thumb-img">
-                    </div>
-                    <div class="theme-details">
-                        <div class="theme-option-title">Forest Sanctuary</div>
-                        <div class="theme-option-desc">A peaceful nature retreat for your music.</div>
-                    </div>
-                    <div class="theme-radio-box">
-                        <span class="theme-radio-check">✓</span>
-                    </div>
-                </div>
-
-                <!-- Theme 3: Snowpeak Fortress -->
-                <div class="theme-select-card" data-theme-id="snowpeak" id="themeOptionSnowpeak">
-                    <div class="theme-thumb-wrap">
-                        <img src="assets/themes/thumb_snowpeak.png" alt="Snowpeak Fortress" class="theme-thumb-img">
-                    </div>
-                    <div class="theme-details">
-                        <div class="theme-option-title">Snowpeak Fortress</div>
-                        <div class="theme-option-desc">A calm and cozy fortress in the mountains.</div>
-                    </div>
-                    <div class="theme-radio-box">
-                        <span class="theme-radio-check">✓</span>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="theme-modal-actions">
-                <button class="pixel-btn pixel-btn-primary pixel-btn-block pixel-btn-lg" id="confirmThemeBtn" type="button">
-                    Enter My Kingdom ⚔️
-                </button>
-            </div>
-
-        </div>
-    </div>
-
-
-    <!-- ========================================================
-         4. ADD SONG MODAL
-         ======================================================== -->
-    <div class="pixel-modal" id="addSongModal" aria-hidden="true" style="display: none;">
-        <div class="pixel-modal-backdrop" id="addSongBackdrop"></div>
-        <div class="pixel-modal-box add-song-modal-box">
-
-            <div class="pixel-modal-header">
-                <h2>Add Song to Kingdom</h2>
-                <button class="pixel-close-btn" id="closeAddSongBtn" type="button" aria-label="Close">×</button>
-            </div>
-
-            <form id="addSongForm" class="pixel-form">
-                <div class="form-group">
-                    <label for="newSongName">Song Title *</label>
-                    <input
-                        id="newSongName"
-                        type="text"
-                        placeholder="e.g. Castle in the Clouds"
-                        autocomplete="off"
-                        required
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="newSongArtist">Artist Name</label>
-                    <input
-                        id="newSongArtist"
-                        type="text"
-                        placeholder="e.g. Azure Beats"
-                        autocomplete="off"
-                    >
-                </div>
-
-                <div class="form-group">
-                    <label for="newSongAudio">Audio File * (MP3, WAV, FLAC, OGG, M4A)</label>
-                    <div class="file-drop-area" id="audioDropArea">
-                        <span class="file-drop-icon">🎵</span>
-                        <span class="file-drop-label" id="audioDropLabel">Choose audio file or drop here</span>
-                        <input
-                            id="newSongAudio"
-                            type="file"
-                            accept="audio/*"
-                            required
-                        >
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Choose Album Cover</label>
-                    <div class="cover-selection-grid">
-                        <label class="cover-preset-option selected">
-                            <input type="radio" name="coverPreset" value="castle" checked>
-                            <img src="assets/themes/cover_castle.png" alt="Castle Sunset">
-                            <span>Castle</span>
+                <div class="form-row-group">
+                    <label>Choose Vinyl Sleeve Artwork</label>
+                    <div class="preset-covers-flex">
+                        <label class="preset-cover-box selected">
+                            <input type="radio" name="coverStyle" value="charcoal" checked>
+                            <img src="assets/themes/cover_charcoal.png" alt="Charcoal">
+                            <span>Charcoal</span>
                         </label>
-                        <label class="cover-preset-option">
-                            <input type="radio" name="coverPreset" value="forest">
-                            <img src="assets/themes/cover_forest.png" alt="Forest Waterfall">
-                            <span>Forest</span>
+                        <label class="preset-cover-box">
+                            <input type="radio" name="coverStyle" value="sleeve1">
+                            <img src="assets/themes/sleeve_1.png" alt="Sleeve 1">
+                            <span>Neon Wave</span>
                         </label>
-                        <label class="cover-preset-option">
-                            <input type="radio" name="coverPreset" value="snowpeak">
-                            <img src="assets/themes/cover_snowpeak.png" alt="Snowpeak Aurora">
-                            <span>Snowpeak</span>
+                        <label class="preset-cover-box">
+                            <input type="radio" name="coverStyle" value="sleeve2">
+                            <img src="assets/themes/sleeve_2.png" alt="Sleeve 2">
+                            <span>Cosmic</span>
+                        </label>
+                        <label class="preset-cover-box">
+                            <input type="radio" name="coverStyle" value="sleeve4">
+                            <img src="assets/themes/sleeve_4.png" alt="Sleeve 4">
+                            <span>Twenty One</span>
                         </label>
                     </div>
 
-                    <div class="or-separator"><span>OR UPLOAD CUSTOM IMAGE</span></div>
+                    <div class="compact-divider"><span>OR UPLOAD CUSTOM ART</span></div>
 
-                    <div class="file-drop-area file-drop-area-sm" id="bannerDropArea">
-                        <span class="file-drop-icon">🖼️</span>
-                        <span class="file-drop-label" id="bannerDropLabel">Optional custom banner image</span>
-                        <input
-                            id="newSongBanner"
-                            type="file"
-                            accept="image/*"
-                        >
+                    <div class="file-compact-dropzone dropzone-mini" id="bannerDropzone">
+                        <span class="compact-drop-icon">🖼️</span>
+                        <span class="compact-drop-label" id="bannerDropLabel">Optional custom cover image</span>
+                        <input type="file" id="newSongBanner" accept="image/*">
                     </div>
                 </div>
 
-                <div class="form-actions">
-                    <button class="pixel-btn pixel-btn-ghost" id="cancelAddSongBtn" type="button">Cancel</button>
-                    <button class="pixel-btn pixel-btn-primary" type="submit">Add Song 🎵</button>
+                <div class="modal-compact-actions">
+                    <button class="pill-btn-outline" id="cancelAddSongBtn" type="button">Cancel</button>
+                    <button class="pill-btn-solid" type="submit">Add to Library</button>
                 </div>
             </form>
-
         </div>
     </div>
 
 
     <!-- ========================================================
-         5. SIGN UP MODAL
+         8. SIGN UP & LOG IN MODALS
          ======================================================== -->
-    <div class="pixel-modal" id="signupModal" aria-hidden="true" style="display: none;">
-        <div class="pixel-modal-backdrop" id="signupBackdrop"></div>
-        <div class="pixel-modal-box auth-modal-box">
-
-            <div class="pixel-modal-header">
-                <h2>Create Your Kingdom Account</h2>
-                <button class="pixel-close-btn" id="closeSignupBtn" type="button" aria-label="Close">×</button>
+    <!-- Sign Up Modal -->
+    <div class="modal-overlay" id="signupModal" style="display: none;">
+        <div class="modal-backdrop" id="signupBackdrop"></div>
+        <div class="modal-card-compact">
+            <div class="modal-compact-header">
+                <h3>Create Account</h3>
+                <button class="modal-close-icon-btn" id="closeSignupBtn" type="button">×</button>
             </div>
-            <p class="auth-modal-sub">Create an account to save your audio library and custom realm.</p>
+            <p class="auth-card-sub">Save your personal audio library and vinyl crates.</p>
 
-            <form id="signupForm" class="pixel-form">
-                <div class="form-group">
-                    <label for="signupName">Adventurer Name</label>
-                    <input id="signupName" type="text" placeholder="e.g. PixelHero" autocomplete="name" required>
+            <form id="signupForm" class="modal-compact-form">
+                <div class="form-row-group">
+                    <label for="signupName">Your Name</label>
+                    <input type="text" id="signupName" placeholder="e.g. Alex" required autocomplete="name">
                 </div>
-
-                <div class="form-group">
+                <div class="form-row-group">
                     <label for="signupEmail">Email</label>
-                    <input id="signupEmail" type="email" placeholder="you@kingdom.com" autocomplete="email" required>
+                    <input type="email" id="signupEmail" placeholder="you@domain.com" required autocomplete="email">
                 </div>
-
-                <div class="form-group">
+                <div class="form-row-group">
                     <label for="signupPassword">Password</label>
-                    <input id="signupPassword" type="password" placeholder="Create a password" autocomplete="new-password" required>
+                    <input type="password" id="signupPassword" placeholder="Create password" required autocomplete="new-password">
                 </div>
-
-                <div class="form-group">
-                    <label for="signupConfirmPassword">Confirm Password</label>
-                    <input id="signupConfirmPassword" type="password" placeholder="Repeat your password" autocomplete="new-password" required>
+                <p class="auth-feedback-msg" id="signupFeedback"></p>
+                <div class="modal-compact-actions">
+                    <button class="pill-btn-outline" id="switchLoginFromSignupBtn" type="button">Log In</button>
+                    <button class="pill-btn-solid" type="submit">Create Account</button>
                 </div>
-
-                <p class="auth-error-msg" id="signupMessage" aria-live="polite"></p>
-
-                <button class="pixel-btn pixel-btn-primary pixel-btn-block" type="submit">Sign Up 👑</button>
             </form>
-
-            <p class="auth-switch-text">
-                Already an adventurer? <button type="button" class="inline-link-btn" id="switchToLoginBtn">Log in</button>
-            </p>
-
         </div>
     </div>
 
-
-    <!-- ========================================================
-         6. LOG IN MODAL
-         ======================================================== -->
-    <div class="pixel-modal" id="loginModal" aria-hidden="true" style="display: none;">
-        <div class="pixel-modal-backdrop" id="loginBackdrop"></div>
-        <div class="pixel-modal-box auth-modal-box">
-
-            <div class="pixel-modal-header">
-                <h2>Welcome Back</h2>
-                <button class="pixel-close-btn" id="closeLoginBtn" type="button" aria-label="Close">×</button>
+    <!-- Log In Modal -->
+    <div class="modal-overlay" id="loginModal" style="display: none;">
+        <div class="modal-backdrop" id="loginBackdrop"></div>
+        <div class="modal-card-compact">
+            <div class="modal-compact-header">
+                <h3>Welcome Back</h3>
+                <button class="modal-close-icon-btn" id="closeLoginBtn" type="button">×</button>
             </div>
-            <p class="auth-modal-sub">Log in to enter your personal music kingdom.</p>
+            <p class="auth-card-sub">Log in to access your sound sanctuary.</p>
 
-            <form id="loginForm" class="pixel-form">
-                <div class="form-group">
+            <form id="loginForm" class="modal-compact-form">
+                <div class="form-row-group">
                     <label for="loginEmail">Email</label>
-                    <input id="loginEmail" type="email" placeholder="you@kingdom.com" autocomplete="email" required>
+                    <input type="email" id="loginEmail" placeholder="you@domain.com" required autocomplete="email">
                 </div>
-
-                <div class="form-group">
+                <div class="form-row-group">
                     <label for="loginPassword">Password</label>
-                    <input id="loginPassword" type="password" placeholder="Enter your password" autocomplete="current-password" required>
+                    <input type="password" id="loginPassword" placeholder="Your password" required autocomplete="current-password">
                 </div>
-
-                <p class="auth-error-msg" id="loginMessage" aria-live="polite"></p>
-
-                <button class="pixel-btn pixel-btn-primary pixel-btn-block" type="submit">Enter Kingdom ⚔️</button>
+                <p class="auth-feedback-msg" id="loginFeedback"></p>
+                <div class="modal-compact-actions">
+                    <button class="pill-btn-outline" id="switchSignupFromLoginBtn" type="button">Sign Up</button>
+                    <button class="pill-btn-solid" type="submit">Log In</button>
+                </div>
             </form>
-
-            <p class="auth-switch-text">
-                New adventurer? <button type="button" class="inline-link-btn" id="switchToSignupBtn">Create account</button>
-            </p>
-
         </div>
     </div>
 
@@ -691,4 +655,5 @@
     <script src="script.js"></script>
 
 </body>
+
 </html>

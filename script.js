@@ -1,29 +1,36 @@
 // ========================================================
-// PIXELTUNES - SCRIPT
-// 16-Bit Pixel Audio Kingdom
+// CHARCOAL STUDIO - MAIN SCRIPT
+// Features: Zen Dots Canvas, 3D Vinyl Crate, 3-Button Mobile Footer, Waveform
 // ========================================================
 
 const USERS_KEY = "gotoSongUsers";
 const CURRENT_USER_KEY = "gotoSongCurrentUser";
-const THEME_KEY = "pixelTunesTheme";
 const SONG_DB_NAME = "gotoSongDatabase";
 const SONG_STORE_NAME = "customSongs";
 
 // Application State
 let currentUser = JSON.parse(localStorage.getItem(CURRENT_USER_KEY) || "null");
-let currentTheme = localStorage.getItem(THEME_KEY) || "castle";
+let isGuestMode = false;
 let songs = [];
-let filteredSongs = [];
 let currentSongIndex = -1;
 let isPlaying = false;
 let isShuffle = false;
 let repeatMode = "none"; // 'none' | 'all' | 'one'
-let likedSongIds = new Set();
-let isGuestMode = false;
+let currentMainView = "tracklist"; // 'tracklist' | 'crate'
 
 // Audio Instance
 const audioPlayer = new Audio();
 const objectUrlCache = new Map();
+
+// Preset Cover Sleeves
+const PRESET_SLEEVES = [
+    "assets/themes/cover_charcoal.png",
+    "assets/themes/sleeve_1.png",
+    "assets/themes/sleeve_2.png",
+    "assets/themes/sleeve_4.png",
+    "assets/themes/sleeve_5.png",
+    "assets/themes/sleeve_6.png"
+];
 
 // ========================================================
 // DOM ELEMENTS
@@ -31,112 +38,123 @@ const objectUrlCache = new Map();
 
 // Views
 const landingScreen = document.getElementById("landingScreen");
+const landingDotsCanvas = document.getElementById("landingDotsCanvas");
 const appContainer = document.getElementById("appContainer");
-const starfieldCanvas = document.getElementById("starfieldCanvas");
 
-// Landing Elements
-const landingLoginNavBtn = document.getElementById("landingLoginNavBtn");
-const landingSignupNavBtn = document.getElementById("landingSignupNavBtn");
-const heroSignupBtn = document.getElementById("heroSignupBtn");
-const heroLoginBtn = document.getElementById("heroLoginBtn");
-const heroExploreBtn = document.getElementById("heroExploreBtn");
-const floatingCards = document.querySelectorAll(".floating-card");
+// Landing Controls
+const landingLoginBtn = document.getElementById("landingLoginBtn");
+const landingSignupBtn = document.getElementById("landingSignupBtn");
+const heroSignupActionBtn = document.getElementById("heroSignupActionBtn");
+const heroGuestActionBtn = document.getElementById("heroGuestActionBtn");
 
-// App Header
-const brandLogoHome = document.getElementById("brandLogoHome");
+// Main App Header & Profile
 const searchInput = document.getElementById("searchInput");
 const clearSearchBtn = document.getElementById("clearSearchBtn");
-const openThemePickerBtn = document.getElementById("openThemePickerBtn");
-const activeThemeLabel = document.getElementById("activeThemeLabel");
-const authButtons = document.getElementById("authButtons");
+const topCrateBtn = document.getElementById("topCrateBtn");
+const topAddTrackBtn = document.getElementById("topAddTrackBtn");
+const userProfilePill = document.getElementById("userProfilePill");
 
-// Sidebar
-const navHome = document.getElementById("navHome");
-const navExplore = document.getElementById("navExplore");
-const navLibrary = document.getElementById("navLibrary");
-const navPlaylists = document.getElementById("navPlaylists");
-const navLiked = document.getElementById("navLiked");
+// Desktop Sidebar
+const sidebarNavHome = document.getElementById("sidebarNavHome");
+const sidebarNavSearch = document.getElementById("sidebarNavSearch");
+const sidebarNavCrate = document.getElementById("sidebarNavCrate");
+const sidebarAlbumLink = document.getElementById("sidebarAlbumLink");
+const sidebarSongCount = document.getElementById("sidebarSongCount");
 const sidebarAddSongBtn = document.getElementById("sidebarAddSongBtn");
-const libraryCount = document.getElementById("libraryCount");
-const likedCount = document.getElementById("likedCount");
 
-// Stage Arch & Scenery
-const bannerEmblem = document.getElementById("bannerEmblem");
-const scenicLandscape = document.getElementById("scenicLandscape");
-const nirvanaEmptyState = document.getElementById("nirvanaEmptyState");
+// Hero Banner
+const heroCoverImg = document.getElementById("heroCoverImg");
+const heroAlbumMeta = document.getElementById("heroAlbumMeta");
+const heroAlbumTitle = document.getElementById("heroAlbumTitle");
+const heroAlbumArtist = document.getElementById("heroAlbumArtist");
+const heroPlayBtn = document.getElementById("heroPlayBtn");
+const heroShuffleBtn = document.getElementById("heroShuffleBtn");
+const heroAddIconBtn = document.getElementById("heroAddIconBtn");
+const tabViewTracklist = document.getElementById("tabViewTracklist");
+const tabViewCrate = document.getElementById("tabViewCrate");
+
+// Main Content Sections
+const nirvanaEmptyCard = document.getElementById("nirvanaEmptyCard");
 const nirvanaAddBtn = document.getElementById("nirvanaAddBtn");
-const nirvanaDropzone = document.getElementById("nirvanaDropzone");
-const nowPlayingCard = document.getElementById("nowPlayingCard");
+const nirvanaDropBox = document.getElementById("nirvanaDropBox");
+const tracklistSection = document.getElementById("tracklistSection");
+const tracklistRowsList = document.getElementById("tracklistRowsList");
+const vinylCrateSection = document.getElementById("vinylCrateSection");
+const vinylFullBannerStack = document.getElementById("vinylFullBannerStack");
 
-// Stage Player Controls
-const stageAlbumArt = document.getElementById("stageAlbumArt");
-const stageTrackTitle = document.getElementById("stageTrackTitle");
-const stageTrackArtist = document.getElementById("stageTrackArtist");
-const stageLikeBtn = document.getElementById("stageLikeBtn");
-const stageLikeIcon = document.getElementById("stageLikeIcon");
-const stageCurrentTime = document.getElementById("stageCurrentTime");
-const stageDuration = document.getElementById("stageDuration");
-const stageProgressBar = document.getElementById("stageProgressBar");
-const stageShuffleBtn = document.getElementById("stageShuffleBtn");
-const stagePrevBtn = document.getElementById("stagePrevBtn");
-const stagePlayBtn = document.getElementById("stagePlayBtn");
-const stagePlayIcon = document.getElementById("stagePlayIcon");
-const stageNextBtn = document.getElementById("stageNextBtn");
-const stageRepeatBtn = document.getElementById("stageRepeatBtn");
+// Desktop Now Playing Panel
+const panelArtImg = document.getElementById("panelArtImg");
+const panelTrackName = document.getElementById("panelTrackName");
+const panelTrackArtist = document.getElementById("panelTrackArtist");
+const panelQueueItems = document.getElementById("panelQueueItems");
 
-// Secondary Stage Views
-const stageSecondaryView = document.getElementById("stageSecondaryView");
-const secondaryViewTitle = document.getElementById("secondaryViewTitle");
-const secondarySongGrid = document.getElementById("secondarySongGrid");
-const backToPlayerBtn = document.getElementById("backToPlayerBtn");
-const secondaryAddSongBtn = document.getElementById("secondaryAddSongBtn");
+// Desktop Bottom Player Bar
+const dtThumbImg = document.getElementById("dtThumbImg");
+const dtTitle = document.getElementById("dtTitle");
+const dtArtist = document.getElementById("dtArtist");
+const dtShuffleBtn = document.getElementById("dtShuffleBtn");
+const dtPrevBtn = document.getElementById("dtPrevBtn");
+const dtPlayBtn = document.getElementById("dtPlayBtn");
+const dtPlaySvg = document.getElementById("dtPlaySvg");
+const dtPauseSvg = document.getElementById("dtPauseSvg");
+const dtNextBtn = document.getElementById("dtNextBtn");
+const dtRepeatBtn = document.getElementById("dtRepeatBtn");
+const dtRepeatOneTag = document.getElementById("dtRepeatOneTag");
+const dtCurrentTime = document.getElementById("dtCurrentTime");
+const dtDuration = document.getElementById("dtDuration");
+const dtWaveformTrack = document.getElementById("dtWaveformTrack");
+const dtCrateShortcutBtn = document.getElementById("dtCrateShortcutBtn");
+const dtMuteBtn = document.getElementById("dtMuteBtn");
+const dtVolumeSlider = document.getElementById("dtVolumeSlider");
 
-// Queue Panel
-const queueList = document.getElementById("queueList");
-const queueEmpty = document.getElementById("queueEmpty");
-const queueAddSongBtn = document.getElementById("queueAddSongBtn");
-const queueEmptyAddBtn = document.getElementById("queueEmptyAddBtn");
+// Mobile Mini Player
+const mobileFloatingMiniPlayer = document.getElementById("mobileFloatingMiniPlayer");
+const mobileMiniThumb = document.getElementById("mobileMiniThumb");
+const mobileMiniTitle = document.getElementById("mobileMiniTitle");
+const mobileMiniArtist = document.getElementById("mobileMiniArtist");
+const mobileMiniPlayBtn = document.getElementById("mobileMiniPlayBtn");
+const mobileMiniPlaySvg = document.getElementById("mobileMiniPlaySvg");
+const mobileMiniPauseSvg = document.getElementById("mobileMiniPauseSvg");
 
-// Bottom Player Bar
-const bottomPlayerBar = document.getElementById("bottomPlayerBar");
-const bottomCover = document.getElementById("bottomCover");
-const bottomTitle = document.getElementById("bottomTitle");
-const bottomArtist = document.getElementById("bottomArtist");
-const bottomLikeBtn = document.getElementById("bottomLikeBtn");
-const bottomLikeIcon = document.getElementById("bottomLikeIcon");
-const bottomShuffleBtn = document.getElementById("bottomShuffleBtn");
-const bottomPrevBtn = document.getElementById("bottomPrevBtn");
-const bottomPlayBtn = document.getElementById("bottomPlayBtn");
-const bottomPlayIcon = document.getElementById("bottomPlayIcon");
-const bottomNextBtn = document.getElementById("bottomNextBtn");
-const bottomRepeatBtn = document.getElementById("bottomRepeatBtn");
-const bottomCurrentTime = document.getElementById("bottomCurrentTime");
-const bottomDuration = document.getElementById("bottomDuration");
-const bottomProgressBar = document.getElementById("bottomProgressBar");
-const muteToggleBtn = document.getElementById("muteToggleBtn");
-const volumeSlider = document.getElementById("volumeSlider");
-const bottomThemeBtn = document.getElementById("bottomThemeBtn");
+// Mobile 3-Button Footer
+const mobTabHome = document.getElementById("mobTabHome");
+const mobTabSearch = document.getElementById("mobTabSearch");
+const mobTabCrate = document.getElementById("mobTabCrate");
 
-// Modals
-const themePickerModal = document.getElementById("themePickerModal");
-const themePickerBackdrop = document.getElementById("themePickerBackdrop");
-const closeThemeModalBtn = document.getElementById("closeThemeModalBtn");
-const themeSelectCards = document.querySelectorAll(".theme-select-card");
-const confirmThemeBtn = document.getElementById("confirmThemeBtn");
+// Mobile Full-Screen Now Playing Overlay
+const mobileNowPlayingOverlay = document.getElementById("mobileNowPlayingOverlay");
+const mobileNpCollapseBtn = document.getElementById("mobileNpCollapseBtn");
+const mobileNpQueueBtn = document.getElementById("mobileNpQueueBtn");
+const mobileNpArtImg = document.getElementById("mobileNpArtImg");
+const mobileNpSongTitle = document.getElementById("mobileNpSongTitle");
+const mobileNpSongArtist = document.getElementById("mobileNpSongArtist");
+const mobileWaveformBars = document.getElementById("mobileWaveformBars");
+const mobileNpCurrentTime = document.getElementById("mobileNpCurrentTime");
+const mobileNpDuration = document.getElementById("mobileNpDuration");
+const mobileShuffleBtn = document.getElementById("mobileShuffleBtn");
+const mobilePrevBtn = document.getElementById("mobilePrevBtn");
+const mobilePlayBtn = document.getElementById("mobilePlayBtn");
+const mobilePlaySvg = document.getElementById("mobilePlaySvg");
+const mobilePauseSvg = document.getElementById("mobilePauseSvg");
+const mobileNextBtn = document.getElementById("mobileNextBtn");
+const mobileRepeatBtn = document.getElementById("mobileRepeatBtn");
+const mobileRepeatOneTag = document.getElementById("mobileRepeatOneTag");
 
+// Add Song Modal
 const addSongModal = document.getElementById("addSongModal");
 const addSongBackdrop = document.getElementById("addSongBackdrop");
-const closeAddSongBtn = document.getElementById("closeAddSongBtn");
+const closeAddSongModalBtn = document.getElementById("closeAddSongModalBtn");
 const cancelAddSongBtn = document.getElementById("cancelAddSongBtn");
 const addSongForm = document.getElementById("addSongForm");
-const newSongName = document.getElementById("newSongName");
+const newSongTitle = document.getElementById("newSongTitle");
 const newSongArtist = document.getElementById("newSongArtist");
-const newSongAudio = document.getElementById("newSongAudio");
+const newSongFile = document.getElementById("newSongFile");
 const newSongBanner = document.getElementById("newSongBanner");
 const audioDropLabel = document.getElementById("audioDropLabel");
 const bannerDropLabel = document.getElementById("bannerDropLabel");
-const coverPresetOptions = document.querySelectorAll(".cover-preset-option");
+const presetCoverBoxes = document.querySelectorAll(".preset-cover-box");
 
+// Sign Up & Log In Modals
 const signupModal = document.getElementById("signupModal");
 const signupBackdrop = document.getElementById("signupBackdrop");
 const closeSignupBtn = document.getElementById("closeSignupBtn");
@@ -144,9 +162,8 @@ const signupForm = document.getElementById("signupForm");
 const signupName = document.getElementById("signupName");
 const signupEmail = document.getElementById("signupEmail");
 const signupPassword = document.getElementById("signupPassword");
-const signupConfirmPassword = document.getElementById("signupConfirmPassword");
-const signupMessage = document.getElementById("signupMessage");
-const switchToLoginBtn = document.getElementById("switchToLoginBtn");
+const signupFeedback = document.getElementById("signupFeedback");
+const switchLoginFromSignupBtn = document.getElementById("switchLoginFromSignupBtn");
 
 const loginModal = document.getElementById("loginModal");
 const loginBackdrop = document.getElementById("loginBackdrop");
@@ -154,18 +171,288 @@ const closeLoginBtn = document.getElementById("closeLoginBtn");
 const loginForm = document.getElementById("loginForm");
 const loginEmail = document.getElementById("loginEmail");
 const loginPassword = document.getElementById("loginPassword");
-const loginMessage = document.getElementById("loginMessage");
-const switchToSignupBtn = document.getElementById("switchToSignupBtn");
+const loginFeedback = document.getElementById("loginFeedback");
+const switchSignupFromLoginBtn = document.getElementById("switchSignupFromLoginBtn");
 
 
 // ========================================================
-// 1. INDEXED DB STORAGE ENGINE (Local & Persistent)
+// 1. CAPACITIVE TOUCH GRID DOTS (Landing Screen Animation)
+// Dots sit invisibly on a stationary grid across the screen.
+// They wait for finger touch / press to reveal themselves with a soft
+// radial capacitive falloff directly under the pressed area.
+// As soon as the finger / pointer is lifted, they vanish immediately.
+// ========================================================
+
+let dotsAnimationId = null;
+const activeTouches = new Map();
+
+function initZenDotsCanvas() {
+    if (!landingDotsCanvas) return;
+    const ctx = landingDotsCanvas.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
+
+    let w = 0;
+    let h = 0;
+    const GRID_SPACING = 10;
+    const TOUCH_RADIUS = 96;
+
+    function resize() {
+        w = window.innerWidth;
+        h = window.innerHeight;
+        landingDotsCanvas.width = Math.floor(w * dpr);
+        landingDotsCanvas.height = Math.floor(h * dpr);
+        landingDotsCanvas.style.width = w + "px";
+        landingDotsCanvas.style.height = h + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    function updatePointer(id, x, y, isPressed) {
+        activeTouches.set(id, {
+            x,
+            y,
+            isPressed,
+            intensity: isPressed ? 1.0 : 0.88
+        });
+    }
+
+    function removePointer(id) {
+        activeTouches.delete(id);
+    }
+
+    // Touch events on landing screen (mobile & tablet)
+    landingScreen.addEventListener("touchstart", e => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            const t = e.changedTouches[i];
+            updatePointer("touch-" + t.identifier, t.clientX, t.clientY, true);
+        }
+    }, { passive: true });
+
+    landingScreen.addEventListener("touchmove", e => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            const t = e.changedTouches[i];
+            updatePointer("touch-" + t.identifier, t.clientX, t.clientY, true);
+        }
+    }, { passive: true });
+
+    landingScreen.addEventListener("touchend", e => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            const t = e.changedTouches[i];
+            removePointer("touch-" + t.identifier);
+        }
+    }, { passive: true });
+
+    landingScreen.addEventListener("touchcancel", e => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            const t = e.changedTouches[i];
+            removePointer("touch-" + t.identifier);
+        }
+    }, { passive: true });
+
+    // Pointer events on landing screen (desktop mouse / stylus)
+    landingScreen.addEventListener("pointerdown", e => {
+        if (e.pointerType === "touch") return;
+        updatePointer("pointer-" + e.pointerId, e.clientX, e.clientY, true);
+    });
+
+    landingScreen.addEventListener("pointermove", e => {
+        if (e.pointerType === "touch") return;
+        const isPressed = e.buttons > 0;
+        updatePointer("pointer-" + e.pointerId, e.clientX, e.clientY, isPressed);
+    });
+
+    landingScreen.addEventListener("pointerup", e => {
+        if (e.pointerType === "touch") return;
+        removePointer("pointer-" + e.pointerId);
+    });
+
+    landingScreen.addEventListener("pointerleave", e => {
+        if (e.pointerType === "touch") return;
+        removePointer("pointer-" + e.pointerId);
+    });
+
+    function renderTouchGrid() {
+        ctx.clearRect(0, 0, w, h);
+
+        if (activeTouches.size > 0) {
+            const touches = Array.from(activeTouches.values());
+
+            for (const touch of touches) {
+                const minX = Math.max(0, Math.floor((touch.x - TOUCH_RADIUS) / GRID_SPACING) * GRID_SPACING);
+                const maxX = Math.min(w, Math.ceil((touch.x + TOUCH_RADIUS) / GRID_SPACING) * GRID_SPACING);
+                const minY = Math.max(0, Math.floor((touch.y - TOUCH_RADIUS) / GRID_SPACING) * GRID_SPACING);
+                const maxY = Math.min(h, Math.ceil((touch.y + TOUCH_RADIUS) / GRID_SPACING) * GRID_SPACING);
+
+                for (let gx = minX; gx <= maxX; gx += GRID_SPACING) {
+                    for (let gy = minY; gy <= maxY; gy += GRID_SPACING) {
+                        const dx = gx - touch.x;
+                        const dy = gy - touch.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+
+                        if (dist < TOUCH_RADIUS) {
+                            const factor = 1 - (dist / TOUCH_RADIUS);
+                            // Solid pure black with clean radial falloff
+                            const alpha = Math.min(1.0, Math.pow(factor, 0.65) * 1.5 * touch.intensity);
+                            // Ultra-dense micro-dots (radius ~0.85px to 1.35px)
+                            const radius = 0.85 + factor * 0.5;
+
+                            ctx.beginPath();
+                            ctx.arc(gx, gy, radius, 0, Math.PI * 2);
+                            ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+                            ctx.fill();
+                        }
+                    }
+                }
+            }
+        }
+
+        if (landingScreen.style.display !== "none") {
+            dotsAnimationId = requestAnimationFrame(renderTouchGrid);
+        }
+    }
+
+    if (dotsAnimationId) cancelAnimationFrame(dotsAnimationId);
+    dotsAnimationId = requestAnimationFrame(renderTouchGrid);
+}
+
+
+// ========================================================
+// 2. AUTHENTICATION & SESSION MANAGEMENT
+// ========================================================
+
+function getUsers() {
+    return JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
+}
+
+function saveUsers(users) {
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+function updateAuthUI() {
+    userProfilePill.innerHTML = "";
+    if (currentUser) {
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "user-name-tag";
+        nameSpan.textContent = currentUser.name;
+
+        const logoutBtn = document.createElement("button");
+        logoutBtn.className = "logout-link-btn";
+        logoutBtn.type = "button";
+        logoutBtn.textContent = "Log out";
+        logoutBtn.addEventListener("click", logout);
+
+        userProfilePill.appendChild(nameSpan);
+        userProfilePill.appendChild(logoutBtn);
+    } else {
+        const loginPill = document.createElement("button");
+        loginPill.className = "pill-btn-outline";
+        loginPill.type = "button";
+        loginPill.textContent = "Log In";
+        loginPill.addEventListener("click", openLoginModal);
+
+        const signupPill = document.createElement("button");
+        signupPill.className = "pill-btn-solid";
+        signupPill.type = "button";
+        signupPill.textContent = "Sign Up";
+        signupPill.addEventListener("click", openSignupModal);
+
+        userProfilePill.appendChild(loginPill);
+        userProfilePill.appendChild(signupPill);
+    }
+}
+
+function showLanding() {
+    landingScreen.style.display = "flex";
+    appContainer.style.display = "none";
+    initZenDotsCanvas();
+}
+
+function showApp() {
+    landingScreen.style.display = "none";
+    if (dotsAnimationId) cancelAnimationFrame(dotsAnimationId);
+    appContainer.style.display = "flex";
+    updateAuthUI();
+    refreshSongs();
+}
+
+function login(email, password) {
+    const users = getUsers();
+    const cleanEmail = email.trim().toLowerCase();
+    const user = users.find(u => u.email === cleanEmail && u.password === password);
+
+    if (!user) {
+        throw new Error("Invalid email or password.");
+    }
+
+    currentUser = { id: user.id, name: user.name, email: user.email };
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
+    isGuestMode = false;
+    closeLoginModal();
+    showApp();
+}
+
+function register(name, email, password) {
+    const users = getUsers();
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (users.some(u => u.email === cleanEmail)) {
+        throw new Error("An account with this email already exists.");
+    }
+
+    const newUser = {
+        id: `user-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        name: name.trim(),
+        email: cleanEmail,
+        password: password
+    };
+
+    users.push(newUser);
+    saveUsers(users);
+
+    currentUser = { id: newUser.id, name: newUser.name, email: newUser.email };
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
+    isGuestMode = false;
+    closeSignupModal();
+    showApp();
+}
+
+function logout() {
+    pause();
+    currentUser = null;
+    localStorage.removeItem(CURRENT_USER_KEY);
+    isGuestMode = false;
+    currentSongIndex = -1;
+    showLanding();
+}
+
+function openSignupModal() {
+    signupForm.reset();
+    signupFeedback.textContent = "";
+    signupModal.style.display = "flex";
+}
+function closeSignupModal() {
+    signupModal.style.display = "none";
+}
+
+function openLoginModal() {
+    loginForm.reset();
+    loginFeedback.textContent = "";
+    loginModal.style.display = "flex";
+}
+function closeLoginModal() {
+    loginModal.style.display = "none";
+}
+
+
+// ========================================================
+// 3. INDEXED DB SONG STORAGE ENGINE
 // ========================================================
 
 function openSongDatabase() {
     return new Promise((resolve, reject) => {
         if (!window.indexedDB) {
-            reject(new Error("IndexedDB is not supported."));
+            reject(new Error("IndexedDB not supported."));
             return;
         }
 
@@ -183,7 +470,7 @@ function openSongDatabase() {
     });
 }
 
-function getSongsFromDatabase() {
+function getStoredSongs() {
     return openSongDatabase().then(db => {
         return new Promise((resolve, reject) => {
             const transaction = db.transaction(SONG_STORE_NAME, "readonly");
@@ -193,26 +480,24 @@ function getSongsFromDatabase() {
             request.onsuccess = () => {
                 const records = request.result || [];
                 const targetUserId = currentUser ? currentUser.id : "guest";
-                // Filter songs belonging to this user or guest
+                // Show records for this user (or guest)
                 const userRecords = records.filter(s => s.userId === targetUserId);
                 resolve(userRecords);
             };
-
             request.onerror = () => reject(request.error);
             transaction.oncomplete = () => db.close();
         });
     });
 }
 
-function saveSongToDatabase(songRecord) {
+function saveSongRecord(song) {
     return openSongDatabase().then(db => {
         return new Promise((resolve, reject) => {
             const transaction = db.transaction(SONG_STORE_NAME, "readwrite");
             const record = {
-                ...songRecord,
+                ...song,
                 userId: currentUser ? currentUser.id : "guest"
             };
-
             transaction.objectStore(SONG_STORE_NAME).put(record);
 
             transaction.oncomplete = () => {
@@ -227,11 +512,11 @@ function saveSongToDatabase(songRecord) {
     });
 }
 
-function deleteSongFromDatabase(songId) {
+function deleteSongRecord(id) {
     return openSongDatabase().then(db => {
         return new Promise((resolve, reject) => {
             const transaction = db.transaction(SONG_STORE_NAME, "readwrite");
-            transaction.objectStore(SONG_STORE_NAME).delete(songId);
+            transaction.objectStore(SONG_STORE_NAME).delete(id);
 
             transaction.oncomplete = () => {
                 db.close();
@@ -247,433 +532,277 @@ function deleteSongFromDatabase(songId) {
 
 
 // ========================================================
-// 2. THEME ENGINE (Castle, Forest, Snowpeak)
+// 4. SONG REFRESH & VIEWS RENDERING
 // ========================================================
 
-const THEME_CONFIG = {
-    castle: {
-        name: "Castle Kingdom",
-        bodyClass: "theme-castle",
-        emblem: "🎵",
-        defaultCover: "assets/themes/cover_castle.png"
-    },
-    forest: {
-        name: "Forest Sanctuary",
-        bodyClass: "theme-forest",
-        emblem: "🍃",
-        defaultCover: "assets/themes/cover_forest.png"
-    },
-    snowpeak: {
-        name: "Snowpeak Fortress",
-        bodyClass: "theme-snowpeak",
-        emblem: "❄️",
-        defaultCover: "assets/themes/cover_snowpeak.png"
-    }
-};
+async function refreshSongs() {
+    const records = await getStoredSongs();
 
-function applyTheme(themeKey) {
-    if (!THEME_CONFIG[themeKey]) themeKey = "castle";
-    currentTheme = themeKey;
+    songs = records.map((s, idx) => {
+        let audioUrl = objectUrlCache.get(`audio-${s.id}`);
+        if (!audioUrl && s.audioBlob) {
+            audioUrl = URL.createObjectURL(s.audioBlob);
+            objectUrlCache.set(`audio-${s.id}`, audioUrl);
+        }
 
-    document.body.className = THEME_CONFIG[themeKey].bodyClass;
-    bannerEmblem.textContent = THEME_CONFIG[themeKey].emblem;
-    activeThemeLabel.textContent = THEME_CONFIG[themeKey].name;
-
-    localStorage.setItem(THEME_KEY, themeKey);
-    if (currentUser) {
-        currentUser.theme = themeKey;
-        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
-    }
-
-    // Update Theme Picker selected card
-    themeSelectCards.forEach(card => {
-        const isMatch = card.dataset.themeId === themeKey;
-        card.classList.toggle("selected", isMatch);
-    });
-}
-
-function openThemePicker() {
-    themePickerModal.style.display = "flex";
-    themePickerModal.setAttribute("aria-hidden", "false");
-}
-
-function closeThemePicker() {
-    themePickerModal.style.display = "none";
-    themePickerModal.setAttribute("aria-hidden", "true");
-}
-
-
-// ========================================================
-// 3. AUTHENTICATION & VIEWS
-// ========================================================
-
-function getUsers() {
-    return JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
-}
-
-function saveUsers(users) {
-    localStorage.setItem(USERS_KEY, JSON.stringify(users));
-}
-
-async function hashPassword(password) {
-    if (window.crypto?.subtle) {
-        const data = new TextEncoder().encode(password);
-        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-        return Array.from(new Uint8Array(hashBuffer))
-            .map(b => b.toString(16).padStart(2, "0"))
-            .join("");
-    }
-    let hash = 0;
-    for (let i = 0; i < password.length; i++) {
-        hash = (hash << 5) - hash + password.charCodeAt(i);
-        hash |= 0;
-    }
-    return `hash-${Math.abs(hash)}`;
-}
-
-function setAuthMessage(element, message, isSuccess = false) {
-    element.textContent = message;
-    element.classList.toggle("success", isSuccess);
-}
-
-function renderAuthHeader() {
-    authButtons.innerHTML = "";
-
-    if (currentUser) {
-        const namePill = document.createElement("span");
-        namePill.className = "auth-user-name";
-        namePill.textContent = `👑 ${currentUser.name}`;
-
-        const logoutBtn = document.createElement("button");
-        logoutBtn.className = "logout-btn";
-        logoutBtn.type = "button";
-        logoutBtn.textContent = "Log Out";
-        logoutBtn.addEventListener("click", logoutUser);
-
-        authButtons.appendChild(namePill);
-        authButtons.appendChild(logoutBtn);
-    } else {
-        const signupBtn = document.createElement("button");
-        signupBtn.className = "pixel-btn pixel-btn-primary pixel-btn-sm";
-        signupBtn.type = "button";
-        signupBtn.textContent = "Sign Up";
-        signupBtn.addEventListener("click", () => openSignupModal());
-
-        const loginBtn = document.createElement("button");
-        loginBtn.className = "pixel-btn pixel-btn-ghost pixel-btn-sm";
-        loginBtn.type = "button";
-        loginBtn.textContent = "Log In";
-        loginBtn.addEventListener("click", () => openLoginModal());
-
-        authButtons.appendChild(signupBtn);
-        authButtons.appendChild(loginBtn);
-    }
-}
-
-function showLandingScreen() {
-    landingScreen.style.display = "flex";
-    appContainer.style.display = "none";
-}
-
-function showAppScreen() {
-    landingScreen.style.display = "none";
-    appContainer.style.display = "flex";
-    renderAuthHeader();
-    loadLikedSongs();
-    refreshSongList();
-}
-
-async function loginUser(email, password) {
-    const users = getUsers();
-    const cleanEmail = email.trim().toLowerCase();
-    const hashed = await hashPassword(password);
-
-    const user = users.find(u => u.email === cleanEmail && u.passwordHash === hashed);
-    if (!user) {
-        throw new Error("Invalid email or password.");
-    }
-
-    currentUser = { id: user.id, name: user.name, email: user.email, theme: user.theme || "castle" };
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
-    applyTheme(currentUser.theme || "castle");
-
-    closeLoginModal();
-    showAppScreen();
-}
-
-async function createAccount(name, email, password) {
-    const users = getUsers();
-    const cleanEmail = email.trim().toLowerCase();
-
-    if (users.some(u => u.email === cleanEmail)) {
-        throw new Error("An account with this email already exists.");
-    }
-
-    const id = `user-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    const passwordHash = await hashPassword(password);
-    const newUser = { id, name: name.trim(), email: cleanEmail, passwordHash, theme: currentTheme };
-
-    users.push(newUser);
-    saveUsers(users);
-
-    currentUser = { id, name: newUser.name, email: cleanEmail, theme: currentTheme };
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
-
-    closeSignupModal();
-    showAppScreen();
-
-    // REQUIREMENT: Immediately give 3 UI options after user signs up successfully!
-    openThemePicker();
-}
-
-function logoutUser() {
-    pauseAudio();
-    currentUser = null;
-    localStorage.removeItem(CURRENT_USER_KEY);
-    isGuestMode = false;
-    currentSongIndex = -1;
-    showLandingScreen();
-}
-
-// Modal open/close helpers
-function openSignupModal() {
-    signupForm.reset();
-    setAuthMessage(signupMessage, "");
-    signupModal.style.display = "flex";
-    signupModal.setAttribute("aria-hidden", "false");
-}
-function closeSignupModal() {
-    signupModal.style.display = "none";
-    signupModal.setAttribute("aria-hidden", "true");
-}
-
-function openLoginModal() {
-    loginForm.reset();
-    setAuthMessage(loginMessage, "");
-    loginModal.style.display = "flex";
-    loginModal.setAttribute("aria-hidden", "false");
-}
-function closeLoginModal() {
-    loginModal.style.display = "none";
-    loginModal.setAttribute("aria-hidden", "true");
-}
-
-function openAddSongModal() {
-    addSongForm.reset();
-    audioDropLabel.textContent = "Choose audio file or drop here";
-    bannerDropLabel.textContent = "Optional custom banner image";
-    coverPresetOptions.forEach(opt => {
-        opt.classList.toggle("selected", opt.querySelector("input").value === currentTheme);
-        opt.querySelector("input").checked = (opt.querySelector("input").value === currentTheme);
-    });
-    addSongModal.style.display = "flex";
-    addSongModal.setAttribute("aria-hidden", "false");
-}
-function closeAddSongModal() {
-    addSongModal.style.display = "none";
-    addSongModal.setAttribute("aria-hidden", "true");
-}
-
-
-// ========================================================
-// 4. LIKED SONGS & PLAYLIST HELPERS
-// ========================================================
-
-function getLikedStorageKey() {
-    const id = currentUser ? currentUser.id : "guest";
-    return `pixelTunesLiked_${id}`;
-}
-
-function loadLikedSongs() {
-    const raw = localStorage.getItem(getLikedStorageKey());
-    likedSongIds = new Set(JSON.parse(raw || "[]"));
-    likedCount.textContent = likedSongIds.size;
-}
-
-function toggleLikeCurrentSong() {
-    if (currentSongIndex < 0 || currentSongIndex >= songs.length) return;
-    const song = songs[currentSongIndex];
-    if (likedSongIds.has(song.id)) {
-        likedSongIds.delete(song.id);
-    } else {
-        likedSongIds.add(song.id);
-    }
-    localStorage.setItem(getLikedStorageKey(), JSON.stringify([...likedSongIds]));
-    likedCount.textContent = likedSongIds.size;
-    updateLikeButtonUI();
-}
-
-function updateLikeButtonUI() {
-    if (currentSongIndex < 0 || currentSongIndex >= songs.length) {
-        stageLikeBtn.classList.remove("liked");
-        stageLikeIcon.textContent = "🤍";
-        bottomLikeBtn.classList.remove("liked");
-        bottomLikeIcon.textContent = "🤍";
-        return;
-    }
-    const song = songs[currentSongIndex];
-    const isLiked = likedSongIds.has(song.id);
-    stageLikeBtn.classList.toggle("liked", isLiked);
-    stageLikeIcon.textContent = isLiked ? "💜" : "🤍";
-    bottomLikeBtn.classList.toggle("liked", isLiked);
-    bottomLikeIcon.textContent = isLiked ? "💜" : "🤍";
-}
-
-
-// ========================================================
-// 5. SONG REFRESH & QUEUE RENDERING
-// ========================================================
-
-async function refreshSongList() {
-    try {
-        const rawSongs = await getSongsFromDatabase();
-
-        songs = rawSongs.map(song => {
-            // Manage audio blob object URL
-            let audioUrl = objectUrlCache.get(`audio-${song.id}`);
-            if (!audioUrl && song.audioBlob) {
-                audioUrl = URL.createObjectURL(song.audioBlob);
-                objectUrlCache.set(`audio-${song.id}`, audioUrl);
+        let posterUrl = objectUrlCache.get(`poster-${s.id}`);
+        if (!posterUrl) {
+            if (s.posterBlob) {
+                posterUrl = URL.createObjectURL(s.posterBlob);
+                objectUrlCache.set(`poster-${s.id}`, posterUrl);
+            } else if (s.posterPreset) {
+                posterUrl = s.posterPreset;
+            } else {
+                posterUrl = PRESET_SLEEVES[idx % PRESET_SLEEVES.length];
             }
+        }
 
-            // Manage poster cover
-            let posterUrl = objectUrlCache.get(`poster-${song.id}`);
-            if (!posterUrl) {
-                if (song.posterBlob) {
-                    posterUrl = URL.createObjectURL(song.posterBlob);
-                    objectUrlCache.set(`poster-${song.id}`, posterUrl);
-                } else if (song.posterPreset && THEME_CONFIG[song.posterPreset]) {
-                    posterUrl = THEME_CONFIG[song.posterPreset].defaultCover;
-                } else {
-                    posterUrl = THEME_CONFIG[currentTheme].defaultCover;
-                }
-            }
+        return {
+            id: s.id,
+            title: s.title || "Untitled Track",
+            artist: s.artist || "Unknown Artist",
+            src: audioUrl,
+            poster: posterUrl,
+            duration: s.duration || "2:52"
+        };
+    });
 
-            return {
-                id: song.id,
-                title: song.title || "Untitled Melody",
-                artist: song.artist || "Azure Beats",
-                src: audioUrl,
-                poster: posterUrl,
-                duration: song.duration || "3:00"
-            };
-        });
+    sidebarSongCount.textContent = songs.length;
+    heroAlbumMeta.textContent = `Album • ${songs.length} songs • 2026`;
 
-        libraryCount.textContent = songs.length;
-        applySearchFilter();
-    } catch (err) {
-        console.error("Could not refresh songs:", err);
-    }
-}
+    renderTracklist();
+    renderVinylCrate();
+    renderPanelQueue();
 
-function applySearchFilter() {
-    const term = (searchInput.value || "").trim().toLowerCase();
-    clearSearchBtn.style.display = term ? "block" : "none";
-
-    if (!term) {
-        filteredSongs = [...songs];
-    } else {
-        filteredSongs = songs.filter(s =>
-            s.title.toLowerCase().includes(term) ||
-            s.artist.toLowerCase().includes(term)
-        );
-    }
-
-    renderQueue();
-    updateStageEmptyOrPlaying();
-}
-
-function updateStageEmptyOrPlaying() {
     if (songs.length === 0) {
-        // App has 0 songs -> Showcase "Choose your Nirvana"
-        nirvanaEmptyState.style.display = "flex";
-        nowPlayingCard.style.display = "none";
-        bottomTitle.textContent = "Choose your Nirvana";
-        bottomArtist.textContent = "Add your first song";
-        bottomCover.src = THEME_CONFIG[currentTheme].defaultCover;
-        bottomPlayBtn.style.opacity = "0.5";
+        // Show "Choose your Nirvana" Empty State
+        appContainer.classList.add("empty-library");
+        nirvanaEmptyCard.style.display = "flex";
+        tracklistSection.style.display = "none";
+        vinylCrateSection.style.display = "none";
+
+        dtTitle.textContent = "Choose your Nirvana";
+        dtArtist.textContent = "Add your first song";
+        mobileMiniTitle.textContent = "Choose your Nirvana";
+        mobileMiniArtist.textContent = "Add your first song";
+        mobileNpSongTitle.textContent = "Choose your Nirvana";
+        mobileNpSongArtist.textContent = "Add your first song";
     } else {
-        nirvanaEmptyState.style.display = "none";
-        nowPlayingCard.style.display = "flex";
-        bottomPlayBtn.style.opacity = "1";
+        appContainer.classList.remove("empty-library");
+        nirvanaEmptyCard.style.display = "none";
+
+        if (currentMainView === "tracklist") {
+            tracklistSection.style.display = "flex";
+            vinylCrateSection.style.display = "none";
+        } else {
+            tracklistSection.style.display = "none";
+            vinylCrateSection.style.display = "flex";
+        }
 
         if (currentSongIndex === -1 && songs.length > 0) {
-            loadSong(0, false);
+            loadTrack(0, false);
         }
     }
 }
 
-function renderQueue() {
-    queueList.innerHTML = "";
+function renderTracklist() {
+    tracklistRowsList.innerHTML = "";
+    const filter = (searchInput.value || "").trim().toLowerCase();
 
-    if (filteredSongs.length === 0) {
-        queueEmpty.style.display = "flex";
-        return;
-    }
-    queueEmpty.style.display = "none";
+    songs.forEach((song, idx) => {
+        if (filter && !song.title.toLowerCase().includes(filter) && !song.artist.toLowerCase().includes(filter)) {
+            return;
+        }
 
-    filteredSongs.forEach((song, idx) => {
-        const originalIndex = songs.findIndex(s => s.id === song.id);
-        const isActive = originalIndex === currentSongIndex;
-
+        const isActive = idx === currentSongIndex;
         const row = document.createElement("div");
-        row.className = `queue-item ${isActive ? "active" : ""}`;
+        row.className = `track-item-row ${isActive ? "active" : ""}`;
 
-        // Equalizer animation if playing this track
-        const eqHtml = (isActive && isPlaying)
-            ? `<div class="queue-eq-bars"><span></span><span></span><span></span></div>`
-            : "";
+        let leadingHtml = "";
+        if (isActive && isPlaying) {
+            leadingHtml = `
+                <div class="sound-bars-anim">
+                    <span></span><span></span><span></span><span></span>
+                </div>
+            `;
+        } else {
+            const numStr = (idx + 1) < 10 ? `0${idx + 1}` : `${idx + 1}`;
+            leadingHtml = `<span class="track-index-col">${numStr}</span>`;
+        }
 
         row.innerHTML = `
-            <img src="${song.poster}" alt="Cover" class="queue-item-thumb">
-            <div class="queue-item-info">
-                <div class="queue-item-title">${song.title}</div>
-                <div class="queue-item-artist">${song.artist}</div>
+            ${leadingHtml}
+            <div class="track-title-col">
+                <img src="${song.poster}" alt="Thumb" class="track-thumb-img">
+                <span class="track-title-text">${song.title}</span>
             </div>
-            ${eqHtml}
-            <div class="queue-item-actions">
-                <button class="queue-action-btn queue-play-btn" type="button" title="Play">
-                    ${isActive && isPlaying ? "⏸" : "▶"}
-                </button>
-                <button class="queue-action-btn queue-delete-btn" type="button" title="Delete">
+            <span class="track-artist-col">${song.artist}</span>
+            <span class="track-duration-col">${song.duration}</span>
+            <div class="track-actions-col">
+                <button class="track-del-btn" type="button" title="Delete song" aria-label="Delete song">
                     🗑
                 </button>
             </div>
         `;
 
-        // Dedicated single-purpose buttons on row:
-        const playBtn = row.querySelector(".queue-play-btn");
-        playBtn.addEventListener("click", e => {
-            e.stopPropagation();
-            if (isActive) {
-                togglePlayPause();
-            } else {
-                loadSong(originalIndex, true);
-            }
-        });
-
-        const deleteBtn = row.querySelector(".queue-delete-btn");
-        deleteBtn.addEventListener("click", async e => {
-            e.stopPropagation();
-            if (confirm(`Remove "${song.title}" from your kingdom?`)) {
-                await deleteSong(song.id);
-            }
-        });
-
         row.addEventListener("click", () => {
-            loadSong(originalIndex, true);
+            loadTrack(idx, true);
         });
 
-        queueList.appendChild(row);
+        const delBtn = row.querySelector(".track-del-btn");
+        delBtn.addEventListener("click", async e => {
+            e.stopPropagation();
+            if (confirm(`Remove "${song.title}" from library?`)) {
+                await deleteSongRecord(song.id);
+                if (currentSongIndex === idx) {
+                    pause();
+                    currentSongIndex = -1;
+                }
+                await refreshSongs();
+            }
+        });
+
+        tracklistRowsList.appendChild(row);
     });
 }
 
 
 // ========================================================
-// 6. AUDIO PLAYBACK ENGINE
+// 5. 3D FULL-BANNER VINYL CRATE DECK
+// "reduce padding of vinyl crate deck so crates are big enough and smoothly scrollable with full banner scroll"
 // ========================================================
 
-function loadSong(index, autoPlay = true) {
+function renderVinylCrate() {
+    vinylFullBannerStack.innerHTML = "";
+
+    if (songs.length === 0) {
+        vinylFullBannerStack.innerHTML = `<p style="color: #6C7689; font-size: 14px; margin-top: 40px;">No vinyls in crate. Add your first track!</p>`;
+        return;
+    }
+
+    songs.forEach((song, idx) => {
+        const isCurrent = idx === currentSongIndex;
+        const sleeve = document.createElement("div");
+        sleeve.className = `vinyl-full-sleeve-card ${isCurrent ? "pulled" : ""}`;
+        sleeve.title = `Click to play: ${song.title} by ${song.artist}`;
+
+        const numStr = (idx + 1) < 10 ? `0${idx + 1}` : `${idx + 1}`;
+
+        sleeve.innerHTML = `
+            <div class="sleeve-spine-bar">
+                <span>${numStr} • ${song.title}</span>
+                <span>${song.artist}</span>
+            </div>
+            <img src="${song.poster}" alt="${song.title}" class="sleeve-cover-img">
+        `;
+
+        sleeve.addEventListener("click", () => {
+            document.querySelectorAll(".vinyl-full-sleeve-card").forEach(c => c.classList.remove("pulled"));
+            sleeve.classList.add("pulled");
+
+            setTimeout(() => {
+                loadTrack(idx, true);
+            }, 180);
+        });
+
+        vinylFullBannerStack.appendChild(sleeve);
+    });
+}
+
+function setMainView(view) {
+    currentMainView = view;
+    if (view === "crate") {
+        tracklistSection.style.display = "none";
+        vinylCrateSection.style.display = "flex";
+        tabViewTracklist.classList.remove("active");
+        tabViewCrate.classList.add("active");
+        mobTabHome.classList.remove("active");
+        mobTabCrate.classList.add("active");
+        renderVinylCrate();
+    } else {
+        tracklistSection.style.display = "flex";
+        vinylCrateSection.style.display = "none";
+        tabViewTracklist.classList.add("active");
+        tabViewCrate.classList.remove("active");
+        mobTabHome.classList.add("active");
+        mobTabCrate.classList.remove("active");
+    }
+}
+
+
+// ========================================================
+// 6. AUDIO PLAYBACK & WAVEFORM SCRUBBER
+// ========================================================
+
+const WAVE_BARS_COUNT = 44;
+let waveBarHeights = [];
+
+function initWaveform() {
+    waveBarHeights = [];
+    for (let i = 0; i < WAVE_BARS_COUNT; i++) {
+        const base = Math.sin((i / WAVE_BARS_COUNT) * Math.PI) * 18 + 5;
+        const rand = Math.sin(i * 1.6) * 4 + Math.cos(i * 3.1) * 3;
+        waveBarHeights.push(Math.max(4, Math.min(26, Math.round(base + rand))));
+    }
+
+    renderWaveforms();
+}
+
+function renderWaveforms() {
+    dtWaveformTrack.innerHTML = "";
+    mobileWaveformBars.innerHTML = "";
+
+    for (let i = 0; i < WAVE_BARS_COUNT; i++) {
+        const h = waveBarHeights[i];
+
+        // Desktop bar unit
+        const dtBar = document.createElement("div");
+        dtBar.className = "wave-bar-unit";
+        dtBar.style.height = `${h}px`;
+        dtBar.setAttribute("data-index", i);
+        dtWaveformTrack.appendChild(dtBar);
+
+        // Mobile bar unit
+        const mobBar = document.createElement("div");
+        mobBar.className = "wave-bar-unit";
+        mobBar.style.height = `${h}px`;
+        mobBar.setAttribute("data-index", i);
+        mobileWaveformBars.appendChild(mobBar);
+    }
+}
+
+function attachWaveformScrubbing(container) {
+    container.addEventListener("click", e => {
+        const rect = container.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const percent = Math.max(0, Math.min(1, clickX / rect.width));
+
+        if (audioPlayer.duration) {
+            audioPlayer.currentTime = percent * audioPlayer.duration;
+            updateWaveform(percent);
+        }
+    });
+}
+attachWaveformScrubbing(dtWaveformTrack);
+attachWaveformScrubbing(mobileWaveformBars);
+
+function updateWaveform(percent) {
+    const activeLimit = Math.floor(percent * WAVE_BARS_COUNT);
+
+    document.querySelectorAll(".wave-bar-unit").forEach(bar => {
+        const idx = parseInt(bar.getAttribute("data-index"), 10);
+        bar.classList.toggle("active", idx <= activeLimit);
+    });
+}
+
+function formatTime(secs) {
+    if (!secs || isNaN(secs)) return "0:00";
+    const m = Math.floor(secs / 60);
+    const s = Math.floor(secs % 60);
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
+}
+
+function loadTrack(index, shouldPlay = true) {
     if (index < 0 || index >= songs.length) return;
     currentSongIndex = index;
     const song = songs[currentSongIndex];
@@ -681,209 +810,243 @@ function loadSong(index, autoPlay = true) {
     audioPlayer.src = song.src;
     audioPlayer.load();
 
-    // Update UI elements
-    stageAlbumArt.src = song.poster;
-    stageTrackTitle.textContent = song.title;
-    stageTrackArtist.textContent = song.artist;
+    // Desktop elements
+    dtThumbImg.src = song.poster;
+    dtTitle.textContent = song.title;
+    dtArtist.textContent = song.artist;
+    heroCoverImg.src = song.poster;
+    heroAlbumTitle.textContent = song.title;
+    heroAlbumArtist.textContent = song.artist;
+    panelArtImg.src = song.poster;
+    panelTrackName.textContent = song.title;
+    panelTrackArtist.textContent = song.artist;
 
-    bottomCover.src = song.poster;
-    bottomTitle.textContent = song.title;
-    bottomArtist.textContent = song.artist;
+    // Mobile elements
+    mobileMiniThumb.src = song.poster;
+    mobileMiniTitle.textContent = song.title;
+    mobileMiniArtist.textContent = song.artist;
+    mobileNpArtImg.src = song.poster;
+    mobileNpSongTitle.textContent = song.title;
+    mobileNpSongArtist.textContent = song.artist;
 
-    stageProgressBar.value = 0;
-    bottomProgressBar.value = 0;
-    stageCurrentTime.textContent = "0:00";
-    bottomCurrentTime.textContent = "0:00";
+    // Reset progress
+    dtCurrentTime.textContent = "0:00";
+    mobileNpCurrentTime.textContent = "0:00";
+    updateWaveform(0);
+    renderTracklist();
+    renderPanelQueue();
 
-    updateLikeButtonUI();
-    renderQueue();
-
-    if (autoPlay) {
-        playAudio();
+    if (shouldPlay) {
+        play();
     } else {
-        pauseAudio();
+        pause();
     }
 }
 
-function playAudio() {
+function play() {
     if (currentSongIndex === -1 && songs.length > 0) {
-        loadSong(0, true);
+        loadTrack(0, true);
         return;
     }
     audioPlayer.play().then(() => {
         isPlaying = true;
         updatePlayIcons(true);
-        renderQueue();
+        renderTracklist();
     }).catch(err => {
-        console.warn("Autoplay blocked or playback error:", err);
+        console.warn("Playback error or autoplay blocked:", err);
         isPlaying = false;
         updatePlayIcons(false);
     });
 }
 
-function pauseAudio() {
+function pause() {
     audioPlayer.pause();
     isPlaying = false;
     updatePlayIcons(false);
-    renderQueue();
+    renderTracklist();
 }
 
-function togglePlayPause() {
+function togglePlay() {
     if (songs.length === 0) {
         openAddSongModal();
         return;
     }
     if (isPlaying) {
-        pauseAudio();
+        pause();
     } else {
-        playAudio();
+        play();
     }
 }
 
 function updatePlayIcons(playing) {
-    stagePlayIcon.textContent = playing ? "⏸" : "▶";
-    bottomPlayIcon.textContent = playing ? "⏸" : "▶";
+    // Desktop Bottom Bar
+    dtPlaySvg.style.display = playing ? "none" : "block";
+    dtPauseSvg.style.display = playing ? "block" : "none";
+
+    // Mobile Mini Player
+    mobileMiniPlaySvg.style.display = playing ? "none" : "block";
+    mobileMiniPauseSvg.style.display = playing ? "block" : "none";
+
+    // Mobile Full Now Playing
+    mobilePlaySvg.style.display = playing ? "none" : "block";
+    mobilePauseSvg.style.display = playing ? "block" : "none";
 }
 
-function playNextSong() {
+// Functioning Shuffle
+function toggleShuffle() {
+    isShuffle = !isShuffle;
+    dtShuffleBtn.classList.toggle("active", isShuffle);
+    mobileShuffleBtn.classList.toggle("active", isShuffle);
+    heroShuffleBtn.classList.toggle("pill-btn-solid", isShuffle);
+}
+
+function nextTrack() {
     if (songs.length === 0) return;
     if (isShuffle) {
-        const nextIndex = Math.floor(Math.random() * songs.length);
-        loadSong(nextIndex, true);
+        let randIdx = currentSongIndex;
+        if (songs.length > 1) {
+            while (randIdx === currentSongIndex) {
+                randIdx = Math.floor(Math.random() * songs.length);
+            }
+        }
+        loadTrack(randIdx, true);
         return;
     }
-    const nextIndex = (currentSongIndex + 1) % songs.length;
-    loadSong(nextIndex, true);
+    const nextIdx = (currentSongIndex + 1) % songs.length;
+    loadTrack(nextIdx, true);
 }
 
-function playPrevSong() {
+function prevTrack() {
     if (songs.length === 0) return;
     if (audioPlayer.currentTime > 3) {
         audioPlayer.currentTime = 0;
         return;
     }
-    const prevIndex = (currentSongIndex - 1 + songs.length) % songs.length;
-    loadSong(prevIndex, true);
+    const prevIdx = (currentSongIndex - 1 + songs.length) % songs.length;
+    loadTrack(prevIdx, true);
 }
 
-function toggleShuffle() {
-    isShuffle = !isShuffle;
-    stageShuffleBtn.classList.toggle("active", isShuffle);
-    bottomShuffleBtn.classList.toggle("active", isShuffle);
-}
-
+// Functioning Repeat Mode ('none' -> 'all' -> 'one')
 function toggleRepeat() {
     if (repeatMode === "none") {
         repeatMode = "all";
-        stageRepeatBtn.classList.add("active");
-        bottomRepeatBtn.classList.add("active");
-        stageRepeatBtn.title = "Repeat: All";
-        bottomRepeatBtn.title = "Repeat: All";
+        dtRepeatBtn.classList.add("active");
+        mobileRepeatBtn.classList.add("active");
+        dtRepeatOneTag.style.display = "none";
+        mobileRepeatOneTag.style.display = "none";
     } else if (repeatMode === "all") {
         repeatMode = "one";
-        stageRepeatBtn.classList.add("active");
-        bottomRepeatBtn.classList.add("active");
-        stageRepeatBtn.title = "Repeat: One";
-        bottomRepeatBtn.title = "Repeat: One";
+        dtRepeatBtn.classList.add("active");
+        mobileRepeatBtn.classList.add("active");
+        dtRepeatOneTag.style.display = "flex";
+        mobileRepeatOneTag.style.display = "flex";
     } else {
         repeatMode = "none";
-        stageRepeatBtn.classList.remove("active");
-        bottomRepeatBtn.classList.remove("active");
-        stageRepeatBtn.title = "Repeat: Off";
-        bottomRepeatBtn.title = "Repeat: Off";
+        dtRepeatBtn.classList.remove("active");
+        mobileRepeatBtn.classList.remove("active");
+        dtRepeatOneTag.style.display = "none";
+        mobileRepeatOneTag.style.display = "none";
     }
 }
 
-function formatTime(seconds) {
-    if (!seconds || isNaN(seconds)) return "0:00";
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
-}
-
-// Audio Player Events
+// Audio Player Listeners
 audioPlayer.addEventListener("timeupdate", () => {
     if (!audioPlayer.duration) return;
-    const current = audioPlayer.currentTime;
-    const total = audioPlayer.duration;
-    const percent = (current / total) * 100;
+    const cur = audioPlayer.currentTime;
+    const dur = audioPlayer.duration;
+    const pct = cur / dur;
 
-    stageProgressBar.value = percent;
-    bottomProgressBar.value = percent;
-    stageCurrentTime.textContent = formatTime(current);
-    bottomCurrentTime.textContent = formatTime(current);
+    dtCurrentTime.textContent = formatTime(cur);
+    dtDuration.textContent = formatTime(dur);
+    mobileNpCurrentTime.textContent = formatTime(cur);
+    mobileNpDuration.textContent = formatTime(dur);
+    updateWaveform(pct);
 });
 
 audioPlayer.addEventListener("loadedmetadata", () => {
-    const total = audioPlayer.duration;
-    stageDuration.textContent = formatTime(total);
-    bottomDuration.textContent = formatTime(total);
+    dtDuration.textContent = formatTime(audioPlayer.duration);
+    mobileNpDuration.textContent = formatTime(audioPlayer.duration);
 });
 
 audioPlayer.addEventListener("ended", () => {
     if (repeatMode === "one") {
         audioPlayer.currentTime = 0;
-        playAudio();
+        play();
     } else if (repeatMode === "all" || currentSongIndex < songs.length - 1) {
-        playNextSong();
+        nextTrack();
     } else {
-        pauseAudio();
+        pause();
     }
 });
 
-// Seek Sliders
-function handleSeek(e) {
-    if (!audioPlayer.duration) return;
-    const seekPercent = e.target.value;
-    audioPlayer.currentTime = (seekPercent / 100) * audioPlayer.duration;
-}
-stageProgressBar.addEventListener("input", handleSeek);
-bottomProgressBar.addEventListener("input", handleSeek);
-
-// Volume Controls
-volumeSlider.addEventListener("input", e => {
+// Volume control
+dtVolumeSlider.addEventListener("input", e => {
     const val = e.target.value / 100;
     audioPlayer.volume = val;
     audioPlayer.muted = false;
-    muteToggleBtn.textContent = val === 0 ? "🔇" : val > 0.5 ? "🔊" : "🔉";
+    dtMuteBtn.textContent = val === 0 ? "🔇" : val > 0.5 ? "🔊" : "🔉";
 });
 
-muteToggleBtn.addEventListener("click", () => {
+dtMuteBtn.addEventListener("click", () => {
     audioPlayer.muted = !audioPlayer.muted;
-    muteToggleBtn.textContent = audioPlayer.muted ? "🔇" : "🔊";
+    dtMuteBtn.textContent = audioPlayer.muted ? "🔇" : "🔊";
 });
 
-async function deleteSong(songId) {
-    await deleteSongFromDatabase(songId);
-    if (currentSongIndex >= 0 && songs[currentSongIndex]?.id === songId) {
-        pauseAudio();
-        currentSongIndex = -1;
-    }
-    await refreshSongList();
+function renderPanelQueue() {
+    panelQueueItems.innerHTML = "";
+    if (songs.length === 0) return;
+
+    songs.forEach((s, idx) => {
+        if (idx === currentSongIndex) return;
+
+        const item = document.createElement("div");
+        item.className = "queue-pill-item";
+        item.innerHTML = `
+            <img src="${s.poster}" alt="Thumb" class="queue-pill-thumb">
+            <div>
+                <div class="queue-pill-name">${s.title}</div>
+                <div class="queue-pill-artist">${s.artist}</div>
+            </div>
+        `;
+        item.addEventListener("click", () => {
+            loadTrack(idx, true);
+        });
+        panelQueueItems.appendChild(item);
+    });
 }
 
 
 // ========================================================
 // 7. ADD SONG MODAL & FILE HANDLING
+// "adjust size so there's NO scrollbar present in mobile or web view"
 // ========================================================
 
-// Cover Preset Selection
-coverPresetOptions.forEach(opt => {
-    opt.addEventListener("click", () => {
-        coverPresetOptions.forEach(o => o.classList.remove("selected"));
-        opt.classList.add("selected");
-        opt.querySelector("input").checked = true;
+function openAddSongModal() {
+    addSongForm.reset();
+    audioDropLabel.textContent = "Choose audio file or drag & drop here";
+    bannerDropLabel.textContent = "Optional custom cover image";
+    addSongModal.style.display = "flex";
+}
+
+function closeAddSongModal() {
+    addSongModal.style.display = "none";
+}
+
+presetCoverBoxes.forEach(box => {
+    box.addEventListener("click", () => {
+        presetCoverBoxes.forEach(b => b.classList.remove("selected"));
+        box.classList.add("selected");
+        box.querySelector("input").checked = true;
     });
 });
 
-newSongAudio.addEventListener("change", e => {
+newSongFile.addEventListener("change", e => {
     const file = e.target.files[0];
     if (file) {
         audioDropLabel.textContent = `Selected: ${file.name}`;
-        if (!newSongName.value) {
-            // Auto fill song name from filename (stripping extension)
+        if (!newSongTitle.value) {
             const clean = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
-            newSongName.value = clean.charAt(0).toUpperCase() + clean.slice(1);
+            newSongTitle.value = clean.charAt(0).toUpperCase() + clean.slice(1);
         }
     }
 });
@@ -898,14 +1061,19 @@ newSongBanner.addEventListener("change", e => {
 addSongForm.addEventListener("submit", async e => {
     e.preventDefault();
 
-    const title = newSongName.value.trim();
-    const artist = newSongArtist.value.trim() || "Azure Beats";
-    const audioFile = newSongAudio.files[0];
+    const title = newSongTitle.value.trim();
+    const artist = newSongArtist.value.trim() || "Unknown Artist";
+    const audioFile = newSongFile.files[0];
     const bannerFile = newSongBanner.files[0];
-    const selectedPreset = document.querySelector('input[name="coverPreset"]:checked')?.value || currentTheme;
+    const selectedPresetVal = document.querySelector('input[name="coverStyle"]:checked')?.value || "charcoal";
+
+    let presetImg = "assets/themes/cover_charcoal.png";
+    if (selectedPresetVal === "sleeve1") presetImg = "assets/themes/sleeve_1.png";
+    if (selectedPresetVal === "sleeve2") presetImg = "assets/themes/sleeve_2.png";
+    if (selectedPresetVal === "sleeve4") presetImg = "assets/themes/sleeve_4.png";
 
     if (!title || !audioFile) {
-        alert("Please provide a title and audio file.");
+        alert("Please provide a track title and audio file.");
         return;
     }
 
@@ -915,295 +1083,213 @@ addSongForm.addEventListener("submit", async e => {
         artist,
         audioBlob: audioFile,
         posterBlob: bannerFile || null,
-        posterPreset: selectedPreset,
+        posterPreset: presetImg,
         createdAt: Date.now()
     };
 
     try {
-        await saveSongToDatabase(songRecord);
+        await saveSongRecord(songRecord);
         closeAddSongModal();
-        await refreshSongList();
+        await refreshSongs();
 
-        // Immediately load and play the newly added song!
-        const newIndex = songs.findIndex(s => s.id === songRecord.id);
-        if (newIndex >= 0) {
-            loadSong(newIndex, true);
+        const newIdx = songs.findIndex(s => s.id === songRecord.id);
+        if (newIdx >= 0) {
+            loadTrack(newIdx, true);
         }
     } catch (err) {
-        console.error("Could not add song:", err);
-        alert("Failed to save song to kingdom.");
+        console.error("Could not save song:", err);
+        alert("Failed to save track.");
     }
 });
 
-// Drag & drop support on Nirvana Dropzone
-function handleDragOver(e) {
+// Drag & Drop on Nirvana Empty state
+nirvanaDropBox.addEventListener("dragover", e => {
     e.preventDefault();
-    nirvanaDropzone.classList.add("drag-over");
-}
-function handleDragLeave() {
-    nirvanaDropzone.classList.remove("drag-over");
-}
-function handleDrop(e) {
+    nirvanaDropBox.classList.add("drag-over");
+});
+nirvanaDropBox.addEventListener("dragleave", () => {
+    nirvanaDropBox.classList.remove("drag-over");
+});
+nirvanaDropBox.addEventListener("drop", e => {
     e.preventDefault();
-    nirvanaDropzone.classList.remove("drag-over");
+    nirvanaDropBox.classList.remove("drag-over");
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith("audio/")) {
         openAddSongModal();
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(file);
-        newSongAudio.files = dataTransfer.files;
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        newSongFile.files = dt.files;
         audioDropLabel.textContent = `Selected: ${file.name}`;
         const clean = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
-        newSongName.value = clean.charAt(0).toUpperCase() + clean.slice(1);
+        newSongTitle.value = clean.charAt(0).toUpperCase() + clean.slice(1);
     }
-}
-
-nirvanaDropzone.addEventListener("dragover", handleDragOver);
-nirvanaDropzone.addEventListener("dragleave", handleDragLeave);
-nirvanaDropzone.addEventListener("drop", handleDrop);
+});
 
 
 // ========================================================
-// 8. EVENT LISTENERS (Strict Single-Purpose Actions)
+// 8. EVENT LISTENERS
 // ========================================================
 
 // Landing Nav / Hero Buttons
-landingSignupNavBtn.addEventListener("click", openSignupModal);
-landingLoginNavBtn.addEventListener("click", openLoginModal);
-heroSignupBtn.addEventListener("click", openSignupModal);
-heroLoginBtn.addEventListener("click", openLoginModal);
-heroExploreBtn.addEventListener("click", () => {
+landingLoginBtn.addEventListener("click", openLoginModal);
+landingSignupBtn.addEventListener("click", openSignupModal);
+heroSignupActionBtn.addEventListener("click", openSignupModal);
+heroGuestActionBtn.addEventListener("click", () => {
     isGuestMode = true;
-    showAppScreen();
+    showApp();
 });
 
-// Floating UI Cards on Landing Screen: Click to preview theme & enter
-floatingCards.forEach(card => {
-    card.addEventListener("click", () => {
-        const theme = card.dataset.targetTheme;
-        applyTheme(theme);
-        isGuestMode = true;
-        showAppScreen();
-    });
+// Auth Form Submissions
+signupForm.addEventListener("submit", e => {
+    e.preventDefault();
+    try {
+        register(signupName.value, signupEmail.value, signupPassword.value);
+    } catch (err) {
+        signupFeedback.textContent = err.message;
+    }
 });
 
-// Search Filter
-searchInput.addEventListener("input", applySearchFilter);
-clearSearchBtn.addEventListener("click", () => {
-    searchInput.value = "";
-    applySearchFilter();
-    searchInput.focus();
+loginForm.addEventListener("submit", e => {
+    e.preventDefault();
+    try {
+        login(loginEmail.value, loginPassword.value);
+    } catch (err) {
+        loginFeedback.textContent = err.message;
+    }
 });
 
-// Single-purpose Play/Pause Buttons
-stagePlayBtn.addEventListener("click", togglePlayPause);
-bottomPlayBtn.addEventListener("click", togglePlayPause);
-
-// Single-purpose Next/Prev Buttons
-stageNextBtn.addEventListener("click", playNextSong);
-bottomNextBtn.addEventListener("click", playNextSong);
-stagePrevBtn.addEventListener("click", playPrevSong);
-bottomPrevBtn.addEventListener("click", playPrevSong);
-
-// Single-purpose Shuffle & Repeat Buttons
-stageShuffleBtn.addEventListener("click", toggleShuffle);
-bottomShuffleBtn.addEventListener("click", toggleShuffle);
-stageRepeatBtn.addEventListener("click", toggleRepeat);
-bottomRepeatBtn.addEventListener("click", toggleRepeat);
-
-// Single-purpose Like Buttons
-stageLikeBtn.addEventListener("click", toggleLikeCurrentSong);
-bottomLikeBtn.addEventListener("click", toggleLikeCurrentSong);
-
-// Dedicated Add Song Openers
-nirvanaAddBtn.addEventListener("click", openAddSongModal);
-sidebarAddSongBtn.addEventListener("click", openAddSongModal);
-queueAddSongBtn.addEventListener("click", openAddSongModal);
-queueEmptyAddBtn.addEventListener("click", openAddSongModal);
-secondaryAddSongBtn.addEventListener("click", openAddSongModal);
-
-// Theme Switcher Buttons
-openThemePickerBtn.addEventListener("click", openThemePicker);
-bottomThemeBtn.addEventListener("click", openThemePicker);
-closeThemeModalBtn.addEventListener("click", closeThemePicker);
-themePickerBackdrop.addEventListener("click", closeThemePicker);
-
-// Theme Selection Cards inside Modal
-themeSelectCards.forEach(card => {
-    card.addEventListener("click", () => {
-        const themeId = card.dataset.themeId;
-        applyTheme(themeId);
-    });
-});
-
-confirmThemeBtn.addEventListener("click", () => {
-    closeThemePicker();
-});
-
-// Add Song Modal Closer
-closeAddSongBtn.addEventListener("click", closeAddSongModal);
-cancelAddSongBtn.addEventListener("click", closeAddSongModal);
-addSongBackdrop.addEventListener("click", closeAddSongModal);
-
-// Auth Modal Controls
-closeSignupBtn.addEventListener("click", closeSignupModal);
-signupBackdrop.addEventListener("click", closeSignupModal);
-switchToLoginBtn.addEventListener("click", () => {
+switchLoginFromSignupBtn.addEventListener("click", () => {
     closeSignupModal();
     openLoginModal();
 });
-
-closeLoginBtn.addEventListener("click", closeLoginModal);
-loginBackdrop.addEventListener("click", closeLoginModal);
-switchToSignupBtn.addEventListener("click", () => {
+switchSignupFromLoginBtn.addEventListener("click", () => {
     closeLoginModal();
     openSignupModal();
 });
+closeSignupBtn.addEventListener("click", closeSignupModal);
+signupBackdrop.addEventListener("click", closeSignupModal);
+closeLoginBtn.addEventListener("click", closeLoginModal);
+loginBackdrop.addEventListener("click", closeLoginModal);
 
-signupForm.addEventListener("submit", async e => {
-    e.preventDefault();
-    if (signupPassword.value !== signupConfirmPassword.value) {
-        setAuthMessage(signupMessage, "Passwords do not match.");
-        return;
-    }
-    try {
-        await createAccount(signupName.value, signupEmail.value, signupPassword.value);
-    } catch (err) {
-        setAuthMessage(signupMessage, err.message);
-    }
+// Top Bar Actions
+topAddTrackBtn.addEventListener("click", openAddSongModal);
+sidebarAddSongBtn.addEventListener("click", openAddSongModal);
+heroAddIconBtn.addEventListener("click", openAddSongModal);
+nirvanaAddBtn.addEventListener("click", openAddSongModal);
+closeAddSongModalBtn.addEventListener("click", closeAddSongModal);
+cancelAddSongBtn.addEventListener("click", closeAddSongModal);
+addSongBackdrop.addEventListener("click", closeAddSongModal);
+
+// Search
+searchInput.addEventListener("input", e => {
+    clearSearchBtn.style.display = e.target.value ? "block" : "none";
+    renderTracklist();
+});
+clearSearchBtn.addEventListener("click", () => {
+    searchInput.value = "";
+    clearSearchBtn.style.display = "none";
+    renderTracklist();
+    searchInput.focus();
 });
 
-loginForm.addEventListener("submit", async e => {
-    e.preventDefault();
-    try {
-        await loginUser(loginEmail.value, loginPassword.value);
-    } catch (err) {
-        setAuthMessage(loginMessage, err.message);
-    }
+// View Switchers (Tracklist vs 3D Vinyl Crate Deck)
+tabViewTracklist.addEventListener("click", () => setMainView("tracklist"));
+tabViewCrate.addEventListener("click", () => setMainView("crate"));
+topCrateBtn.addEventListener("click", () => setMainView("crate"));
+sidebarNavCrate.addEventListener("click", () => setMainView("crate"));
+dtCrateShortcutBtn.addEventListener("click", () => {
+    setMainView(currentMainView === "crate" ? "tracklist" : "crate");
 });
 
 // Sidebar Navigation
-navHome.addEventListener("click", () => {
-    stageSecondaryView.style.display = "none";
-    setActiveNavItem(navHome);
-    applySearchFilter();
+sidebarNavHome.addEventListener("click", () => {
+    setMainView("tracklist");
+    document.getElementById("mainScrollBody").scrollTo({ top: 0, behavior: "smooth" });
 });
+sidebarNavSearch.addEventListener("click", () => searchInput.focus());
+sidebarAlbumLink.addEventListener("click", () => setMainView("tracklist"));
 
-navExplore.addEventListener("click", () => {
-    showSecondaryGrid("Explore Realms & Anthems", songs);
-    setActiveNavItem(navExplore);
+// Album Hero Buttons
+heroPlayBtn.addEventListener("click", () => {
+    if (songs.length > 0) loadTrack(0, true);
 });
-
-navLibrary.addEventListener("click", () => {
-    showSecondaryGrid("Your Library", songs);
-    setActiveNavItem(navLibrary);
-});
-
-navPlaylists.addEventListener("click", () => {
-    showSecondaryGrid("Playlists", songs);
-    setActiveNavItem(navPlaylists);
-});
-
-navLiked.addEventListener("click", () => {
-    const likedList = songs.filter(s => likedSongIds.has(s.id));
-    showSecondaryGrid("Liked Songs", likedList);
-    setActiveNavItem(navLiked);
-});
-
-backToPlayerBtn.addEventListener("click", () => {
-    stageSecondaryView.style.display = "none";
-    setActiveNavItem(navHome);
-});
-
-function setActiveNavItem(activeBtn) {
-    [navHome, navExplore, navLibrary, navPlaylists, navLiked].forEach(btn => {
-        btn.classList.toggle("active", btn === activeBtn);
-    });
-}
-
-function showSecondaryGrid(title, songArray) {
-    stageSecondaryView.style.display = "block";
-    secondaryViewTitle.textContent = title;
-    secondarySongGrid.innerHTML = "";
-
-    if (songArray.length === 0) {
-        secondarySongGrid.innerHTML = `<p style="color: var(--text-muted); font-size: 13px;">No tracks found in this category.</p>`;
-        return;
+heroShuffleBtn.addEventListener("click", () => {
+    if (songs.length > 0) {
+        toggleShuffle();
+        const r = Math.floor(Math.random() * songs.length);
+        loadTrack(r, true);
     }
+});
 
-    songArray.forEach(song => {
-        const card = document.createElement("div");
-        card.className = "grid-song-card";
-        card.innerHTML = `
-            <img src="${song.poster}" alt="Cover" class="grid-song-thumb">
-            <div class="grid-song-title">${song.title}</div>
-            <div class="grid-song-artist">${song.artist}</div>
-        `;
-        card.addEventListener("click", () => {
-            const origIndex = songs.findIndex(s => s.id === song.id);
-            if (origIndex >= 0) {
-                stageSecondaryView.style.display = "none";
-                setActiveNavItem(navHome);
-                loadSong(origIndex, true);
-            }
-        });
-        secondarySongGrid.appendChild(card);
-    });
-}
+// Desktop Bottom Controls
+dtPlayBtn.addEventListener("click", togglePlay);
+dtNextBtn.addEventListener("click", nextTrack);
+dtPrevBtn.addEventListener("click", prevTrack);
+dtShuffleBtn.addEventListener("click", toggleShuffle);
+dtRepeatBtn.addEventListener("click", toggleRepeat);
 
-
-// ========================================================
-// 9. RETRO CANVAS STARFIELD (Landing Page)
-// ========================================================
-
-function initStarfield() {
-    if (!starfieldCanvas) return;
-    const ctx = starfieldCanvas.getContext("2d");
-    let width = (starfieldCanvas.width = window.innerWidth);
-    let height = (starfieldCanvas.height = window.innerHeight);
-
-    window.addEventListener("resize", () => {
-        width = starfieldCanvas.width = window.innerWidth;
-        height = starfieldCanvas.height = window.innerHeight;
-    });
-
-    const stars = Array.from({ length: 80 }, () => ({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        size: Math.random() > 0.7 ? 3 : 2,
-        color: ["#ffd166", "#ffffff", "#48c774", "#00d2ff"][Math.floor(Math.random() * 4)],
-        speed: 0.2 + Math.random() * 0.4
-    }));
-
-    function animate() {
-        ctx.clearRect(0, 0, width, height);
-        stars.forEach(s => {
-            ctx.fillStyle = s.color;
-            ctx.fillRect(Math.floor(s.x), Math.floor(s.y), s.size, s.size);
-            s.y += s.speed;
-            if (s.y > height) {
-                s.y = 0;
-                s.x = Math.random() * width;
-            }
-        });
-        requestAnimationFrame(animate);
+// Mobile Mini Player -> Expands Full Now Playing (Mobile view only)
+function openMobileOverlay() {
+    if (window.innerWidth <= 768) {
+        mobileNowPlayingOverlay.classList.add("open");
     }
-    animate();
 }
+
+function closeMobileOverlay() {
+    mobileNowPlayingOverlay.classList.remove("open");
+    mobileNowPlayingOverlay.style.display = "";
+}
+
+mobileFloatingMiniPlayer.addEventListener("click", e => {
+    if (e.target.closest("#mobileMiniPlayBtn")) return; // prevent toggle trigger from opening
+    openMobileOverlay();
+});
+mobileMiniPlayBtn.addEventListener("click", togglePlay);
+
+// Mobile Full Now Playing Controls (Pic 3)
+mobileNpCollapseBtn.addEventListener("click", closeMobileOverlay);
+mobileNpQueueBtn.addEventListener("click", () => {
+    closeMobileOverlay();
+    setMainView("crate");
+});
+mobilePlayBtn.addEventListener("click", togglePlay);
+mobileNextBtn.addEventListener("click", nextTrack);
+mobilePrevBtn.addEventListener("click", prevTrack);
+mobileShuffleBtn.addEventListener("click", toggleShuffle);
+mobileRepeatBtn.addEventListener("click", toggleRepeat);
+
+// Mobile 3 Footer Buttons
+mobTabHome.addEventListener("click", () => {
+    closeMobileOverlay();
+    setMainView("tracklist");
+});
+mobTabSearch.addEventListener("click", () => {
+    closeMobileOverlay();
+    searchInput.focus();
+});
+mobTabCrate.addEventListener("click", () => {
+    closeMobileOverlay();
+    setMainView("crate");
+});
+
+window.addEventListener("resize", () => {
+    if (window.innerWidth > 768) {
+        closeMobileOverlay();
+    }
+});
 
 
 // ========================================================
-// 10. INITIALIZATION
+// 9. INITIALIZATION
 // ========================================================
 
 function init() {
-    initStarfield();
-    applyTheme(currentUser ? (currentUser.theme || currentTheme) : currentTheme);
+    initWaveform();
 
     if (currentUser) {
-        showAppScreen();
+        showApp();
     } else {
-        showLandingScreen();
+        showLanding();
     }
 }
 
