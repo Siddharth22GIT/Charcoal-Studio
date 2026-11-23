@@ -1,693 +1,694 @@
-    <!DOCTYPE html>
-    <html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixelTunes 👑 Your Music Kingdom</title>
 
-        <title>Spotify26 🎵</title>
+    <!-- Google Fonts for authentic retro pixel aesthetic & crisp readability -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Press+Start+2P&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=VT323&display=swap" rel="stylesheet">
 
-        <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
 
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<body class="theme-castle">
 
-        <link
-            href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap"
-            rel="stylesheet">
-    </head>
+    <!-- ========================================================
+         1. LANDING SCREEN (First-time / Unauthenticated View)
+         ======================================================== -->
+    <div id="landingScreen" class="landing-screen">
+        <!-- Pixel Starfield Ambient Canvas -->
+        <canvas id="starfieldCanvas" class="starfield-canvas"></canvas>
 
-    <body>
+        <!-- Landing Header -->
+        <header class="landing-header">
+            <div class="brand-badge">
+                <img src="assets/themes/crown.png" alt="Crown" class="pixel-crown">
+                <div class="brand-titles">
+                    <span class="brand-name">PixelTunes</span>
+                    <span class="brand-tagline">Your Music Kingdom</span>
+                </div>
+            </div>
+            <div class="landing-auth-nav">
+                <button id="landingLoginNavBtn" class="pixel-btn pixel-btn-ghost" type="button">Log In</button>
+                <button id="landingSignupNavBtn" class="pixel-btn pixel-btn-primary" type="button">Sign Up</button>
+            </div>
+        </header>
 
-        <!-- =========================
-            HEADER
-        ========================== -->
-
-        <header>
-
-            <div class="nav">
-                <img src="logo.svg" alt="Spotify">
+        <!-- Landing Hero Section with Bold Headline and Floating 3 UIs -->
+        <main class="landing-hero">
+            <div class="landing-hero-content">
+                <div class="pixel-status-badge">✦ 16-BIT AUDIO SANCTUARY ✦</div>
+                <h1 class="landing-title">Choose your Nirvana</h1>
+                <h2 class="landing-subtitle">YOUR MUSIC KINGDOM AWAITS</h2>
+                <p class="landing-desc">
+                    Immerse yourself in a retro-pixel music realm. Upload your personal audio sanctuary, customize your enchanted kingdom across 3 handcrafted pixel realms, and experience music like never before.
+                </p>
+                <div class="landing-cta-row">
+                    <button id="heroSignupBtn" class="pixel-btn pixel-btn-primary pixel-btn-lg" type="button">
+                        <span class="btn-icon">👑</span> Sign Up &amp; Claim Realm
+                    </button>
+                    <button id="heroLoginBtn" class="pixel-btn pixel-btn-secondary pixel-btn-lg" type="button">
+                        <span class="btn-icon">⚔️</span> Log In
+                    </button>
+                    <button id="heroExploreBtn" class="pixel-btn pixel-btn-ghost pixel-btn-lg" type="button">
+                        <span class="btn-icon">▶</span> Enter as Guest
+                    </button>
+                </div>
             </div>
 
+            <!-- 3 Floating UIs Showcase Animation -->
+            <div class="floating-showcase" id="floatingShowcase">
+                <div class="floating-stage-glow"></div>
 
-            <div class="search">
+                <!-- Theme 1: Castle Kingdom (Center / Floating) -->
+                <div class="floating-card floating-card-castle" data-target-theme="castle" title="Castle Kingdom">
+                    <div class="floating-card-tag">🏰 Theme 1 &bull; Castle Kingdom (Default)</div>
+                    <div class="floating-card-img-wrap">
+                        <img src="assets/themes/preview_castle.png" alt="Castle Kingdom UI">
+                    </div>
+                    <div class="floating-card-footer">
+                        <span>A royal music hall in a pixel castle</span>
+                        <span class="pill-badge">Purple &bull; Gold</span>
+                    </div>
+                </div>
+
+                <!-- Theme 2: Forest Sanctuary (Left / Floating) -->
+                <div class="floating-card floating-card-forest" data-target-theme="forest" title="Forest Sanctuary">
+                    <div class="floating-card-tag">🍃 Theme 2 &bull; Forest Sanctuary</div>
+                    <div class="floating-card-img-wrap">
+                        <img src="assets/themes/preview_forest.png" alt="Forest Sanctuary UI">
+                    </div>
+                    <div class="floating-card-footer">
+                        <span>A peaceful nature retreat for your music</span>
+                        <span class="pill-badge">Emerald &bull; Moss</span>
+                    </div>
+                </div>
+
+                <!-- Theme 3: Snowpeak Fortress (Right / Floating) -->
+                <div class="floating-card floating-card-snowpeak" data-target-theme="snowpeak" title="Snowpeak Fortress">
+                    <div class="floating-card-tag">❄️ Theme 3 &bull; Snowpeak Fortress</div>
+                    <div class="floating-card-img-wrap">
+                        <img src="assets/themes/preview_snowpeak.png" alt="Snowpeak Fortress UI">
+                    </div>
+                    <div class="floating-card-footer">
+                        <span>A calm and cozy fortress in the mountains</span>
+                        <span class="pill-badge">Arctic &bull; Cyan</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+
+    <!-- ========================================================
+         2. MAIN PIXELTUNES APPLICATION
+         ======================================================== -->
+    <div id="appContainer" class="app-container" style="display: none;">
+
+        <!-- Pixel Header -->
+        <header class="app-header">
+            <!-- Brand -->
+            <div class="brand-badge" id="brandLogoHome">
+                <img src="assets/themes/crown.png" alt="Crown" class="pixel-crown">
+                <div class="brand-titles">
+                    <span class="brand-name">PixelTunes</span>
+                    <span class="brand-tagline">Your Music Kingdom</span>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="pixel-search-wrap">
+                <span class="search-icon">🔍</span>
                 <input
                     type="text"
                     id="searchInput"
-                    placeholder="Search for your favourite songs"
+                    class="pixel-search-input"
+                    placeholder="Search tracks, artists, or realms..."
                     autocomplete="off"
                 >
+                <button id="clearSearchBtn" class="clear-search-btn" type="button" aria-label="Clear search" style="display: none;">×</button>
             </div>
 
-
-            <!-- =========================
-                MY PLAYLISTS
-            ========================== -->
-
-            <div class="playlist-menu">
-
-                <button
-                    class="playlist-btn"
-                    type="button"
-                >
-                    My Playlists
+            <!-- Top Right Action Controls -->
+            <div class="header-right-actions">
+                <!-- Theme Switcher Button -->
+                <button id="openThemePickerBtn" class="pixel-btn pixel-theme-toggle-btn" type="button" title="Switch Pixel Theme">
+                    <img src="assets/themes/crown.png" alt="Theme" class="btn-crown-icon">
+                    <span id="activeThemeLabel">Castle Kingdom</span>
                 </button>
 
-
-                <div class="playlist-dropdown">
-
-                    <!-- PLAYLIST LIST -->
-
-                    <div class="playlist-view">
-
-                        <div class="playlist-heading">
-                            My Playlists
-                        </div>
-
-                        <div class="playlist-list">
-                            <!-- Generated by JavaScript -->
-                        </div>
-
-                        <button
-                            class="all-songs-btn"
-                            type="button"
-                        >
-                            <span class="all-songs-icon">♫</span>
-                            <span>All Songs</span>
-                        </button>
-
-                        <button
-                            class="new-playlist-btn"
-                            type="button"
-                        >
-                            <span class="plus-icon">+</span>
-                            <span>New Playlist</span>
-                        </button>
-
-                    </div>
-
-
-                    <!-- =========================
-                        PLAYLIST EDITOR
-                    ========================== -->
-
-                    <div class="playlist-editor">
-
-                        <div class="playlist-editor-header">
-
-                            <button
-                                class="back-playlist-btn"
-                                type="button"
-                            >
-                                ←
-                            </button>
-
-                            <span class="selected-playlist-name">
-                                Playlist
-                            </span>
-
-                        </div>
-
-
-                        <div class="add-song-section">
-
-                            <input
-                                type="text"
-                                class="add-song-input"
-                                placeholder="Enter song name"
-                                autocomplete="off"
-                            >
-
-                            <button
-                                class="add-song-btn"
-                                type="button"
-                            >
-                                Add
-                            </button>
-
-                        </div>
-
-
-                        <div class="song-suggestions">
-                            Try: Song 1, Song 2...
-                        </div>
-
-
-                        <div class="playlist-songs">
-                            <!-- Generated by JavaScript -->
-                        </div>
-
-                    </div>
-
+                <!-- Auth Buttons / User Profile -->
+                <div id="authButtons" class="auth-buttons-wrap">
+                    <!-- Injected by JavaScript: Either Log in/Sign up or Hi User + Log out -->
                 </div>
-
             </div>
-
-
-            <!-- =========================
-                AUTH BUTTONS
-            ========================== -->
-
-            <div class="btns" id="authButtons">
-
-                <div class="signupbtn">
-                    <button id="signupOpenBtn" type="button">Sign up</button>
-                </div>
-
-                <div class="loginbtn">
-                    <button id="loginOpenBtn" type="button">Log in</button>
-                </div>
-
-            </div>
-
         </header>
 
-
-        <!-- =========================
-            MAIN
-        ========================== -->
-
-        <div class="container">
-
+        <!-- Main Grid Layout (Sidebar, Center Stage, Up Next) -->
+        <div class="kingdom-layout">
 
             <!-- =========================
-                LEFT SIDEBAR
-            ========================== -->
+                 LEFT SIDEBAR NAVIGATION
+                 ========================= -->
+            <aside class="pixel-sidebar">
+                <nav class="sidebar-nav">
+                    <button class="nav-item active" id="navHome" type="button">
+                        <span class="nav-icon">🏠</span>
+                        <span class="nav-text">Home</span>
+                    </button>
+                    <button class="nav-item" id="navExplore" type="button">
+                        <span class="nav-icon">🔍</span>
+                        <span class="nav-text">Explore</span>
+                    </button>
+                    <button class="nav-item" id="navLibrary" type="button">
+                        <span class="nav-icon">📚</span>
+                        <span class="nav-text">Library</span>
+                        <span class="nav-count" id="libraryCount">0</span>
+                    </button>
+                    <button class="nav-item" id="navPlaylists" type="button">
+                        <span class="nav-icon">🎵</span>
+                        <span class="nav-text">Playlists</span>
+                    </button>
+                    <button class="nav-item" id="navLiked" type="button">
+                        <span class="nav-icon">💜</span>
+                        <span class="nav-text">Liked Songs</span>
+                        <span class="nav-count" id="likedCount">0</span>
+                    </button>
+                </nav>
 
-            <div class="left">
-
-                Your Library
-
-
-                <div class="list">
-
-                    <div class="song">
-                        <audio src="songs/cinematic-suspense-track-for-games-amp-trailers-225120.mp3"></audio>
-                        Song 1
-                    </div>
-
-                    <div class="song">
-                        <audio src="songs/braam-ambient-dropper-epic-stock-media-1-00-09.mp3"></audio>
-                        Song 2
-                    </div>
-
-                    <div class="song">
-                        <audio src="songs/cinematic-suspense-investigative-mystery-219178.mp3"></audio>
-                        Song 3
-                    </div>
-
-                    <div class="song">
-                        <audio src="songs/cinematic-transition-futuristic-synth-riser-ra-music-1-00-21.mp3"></audio>
-                        Song 4
-                    </div>
-
-                    <div class="song">
-                        <audio src="songs/mixkit-big-cinematic-impact-788.mp3"></audio>
-                        Song 5
-                    </div>
-
-                    <div class="song">
-                        <audio src="songs/mixkit-cinematic-drama-riser-632.wav"></audio>
-                        Song 6
-                    </div>
-
-                    <div class="song">
-                        <audio src="songs/mixkit-cinematic-mysterious-riser-brass-2283.wav"></audio>
-                        Song 7
-                    </div>
-
-                    <div class="song">
-                        <audio src="songs/mixkit-echoes-188.mp3"></audio>
-                        Song 8
-                    </div>
-
-                    <div class="song">
-                        <audio src="songs/mixkit-fright-night-871.mp3"></audio>
-                        Song 9
-                    </div>
-
-                    <div class="song">
-                        <audio src="songs/mixkit-movie-trailer-epic-impact-2908.wav"></audio>
-                        Song 10
-                    </div>
-
-                    <div class="song">
-                        <audio src="songs/mixkit-powerful-air-whooshes-3220.wav"></audio>
-                        Song 11
-                    </div>
-
-                    <div class="song">
-                        <audio src="songs/mixkit-heartbeat-medium-speed-495.wav"></audio>
-                        Song 12
-                    </div>
-
-                </div>
-
-
-                <!-- FOOTER -->
-
-                <div class="footer">
-
-                    <div>
-
-                        <div>
-                            <a href="https://www.spotify.com/in-en/legal/">
-                                Legal
-                            </a>
-                        </div>
-
-                        <div>
-                            <a href="https://www.spotify.com/in-en/safetyandprivacy/">
-                                Safety &amp; Privacy Center
-                            </a>
-                        </div>
-
-                        <div>
-                            <a href="https://www.spotify.com/in-en/legal/privacy-policy/">
-                                Privacy Policy
-                            </a>
-                        </div>
-
-                        <div>
-                            <a href="https://www.spotify.com/in-en/legal/cookies-policy/">
-                                Cookies
-                            </a>
-                        </div>
-
-                        <div>
-                            <a href="https://www.spotify.com/in-en/legal/privacy-policy/#s3">
-                                About Ads
-                            </a>
-                        </div>
-
-                        <div>
-                            <a href="https://www.spotify.com/in-en/accessibility/">
-                                Accessibility
-                            </a>
-                        </div>
-
-                    </div>
-
-                    <a
-                        href="https://www.spotify.com/legal/cookies-policy/"
-                        target="_blank"
-                        rel="noopener"
-                    >
-                        Cookies
-                    </a>
-
-                </div>
-
-            </div>
-
-
-            <!-- =========================
-                RIGHT CONTENT
-            ========================== -->
-
-            <div class="right">
-
-                <div class="content-header">
-                    <div class="content-heading" id="contentHeading">
-                        Trending songs
-                    </div>
-
-                    <button
-                        class="add-home-song-btn"
-                        id="addHomeSongBtn"
-                        type="button"
-                    >
-                        + Add Song
+                <!-- Add Song Quick Button -->
+                <div class="sidebar-action-wrap">
+                    <button class="pixel-btn pixel-btn-primary pixel-btn-block" id="sidebarAddSongBtn" type="button">
+                        <span class="btn-icon">+</span> Add Song
                     </button>
                 </div>
 
+                <!-- Cozy Pixel Character Corner (from user reference) -->
+                <div class="sidebar-character-card">
+                    <div class="pixel-character-scene">
+                        <div class="character-adventurer" title="Listening to the kingdom tunes..."></div>
+                        <div class="character-dog" title="Zzz... peaceful music companion"></div>
+                        <div class="character-sword"></div>
+                    </div>
+                    <div class="character-caption">
+                        <span class="character-status">● Safe in Realm</span>
+                    </div>
+                </div>
+            </aside>
 
-                <div class="holder" id="songHolder">
 
-                    <!-- SONG 1 -->
+            <!-- =========================
+                 CENTER STAGE (Nirvana & Now Playing)
+                 ========================= -->
+            <main class="pixel-stage" id="pixelStage">
 
-                    <div class="card">
+                <!-- Themed Scenic Arch Backdrop -->
+                <div class="stage-stone-arch">
 
-                        <img src="song posters/1.jpg" alt="Song 1">
+                    <!-- Hanging Theme Banner on Left of Arch -->
+                    <div class="stage-hanging-banner" id="stageBanner">
+                        <div class="banner-cloth">
+                            <span class="banner-emblem" id="bannerEmblem">🎵</span>
+                        </div>
+                    </div>
 
-                        <div class="play">
+                    <!-- Glowing Torches on Arch Posts -->
+                    <div class="arch-torch arch-torch-left">
+                        <div class="torch-flame"></div>
+                        <div class="torch-bracket"></div>
+                    </div>
+                    <div class="arch-torch arch-torch-right">
+                        <div class="torch-flame"></div>
+                        <div class="torch-bracket"></div>
+                    </div>
 
-                            <audio src="songs/cinematic-suspense-track-for-games-amp-trailers-225120.mp3"></audio>
+                    <!-- Window Scenery Layer (Castle Dusk / Forest Falls / Snow Aurora) -->
+                    <div class="scenic-window" id="scenicWindow">
+                        <div class="scenic-stars"></div>
+                        <div class="scenic-aurora"></div>
+                        <div class="scenic-landscape" id="scenicLandscape"></div>
+                    </div>
 
-                            <img src="play.svg" alt="Play">
+                    <!-- Stage Center Content Container -->
+                    <div class="stage-content" id="stageContent">
+
+                        <!-- =========================
+                             A. NIRVANA EMPTY STATE
+                             (Shown when no songs exist)
+                             ========================= -->
+                        <div class="nirvana-empty-state" id="nirvanaEmptyState">
+                            <div class="nirvana-sparkle-badge">✦ REALM SILENT ✦</div>
+                            <h1 class="nirvana-headline">Choose your Nirvana</h1>
+                            <p class="nirvana-description">
+                                Your music kingdom is waiting for its first anthem. Add your personal audio files to ignite the kingdom torches and bring this realm to life!
+                            </p>
+
+                            <!-- Dropzone & Upload Button -->
+                            <div class="nirvana-dropzone" id="nirvanaDropzone">
+                                <div class="dropzone-icon">⚡</div>
+                                <div class="dropzone-text">Drag &amp; drop audio files here</div>
+                                <div class="dropzone-sub">or click below to browse</div>
+
+                                <button class="pixel-btn pixel-btn-primary pixel-btn-lg" id="nirvanaAddBtn" type="button">
+                                    <span class="btn-icon">+</span> Add Your First Song
+                                </button>
+                            </div>
+
+                            <div class="nirvana-perks">
+                                <span class="perk-pill">🔒 100% Local &amp; Private</span>
+                                <span class="perk-pill">🕹 16-Bit Sound Architecture</span>
+                                <span class="perk-pill">🎨 3 Swappable Pixel Realms</span>
+                            </div>
+                        </div>
+
+                        <!-- =========================
+                             B. ACTIVE NOW PLAYING CARD
+                             (Shown when song is loaded)
+                             ========================= -->
+                        <div class="now-playing-card" id="nowPlayingCard" style="display: none;">
+
+                            <!-- Center Artwork Frame -->
+                            <div class="album-art-stage-frame">
+                                <img src="assets/themes/cover_castle.png" alt="Now Playing Album Art" id="stageAlbumArt" class="stage-album-art">
+                                <div class="art-pixel-glow"></div>
+                            </div>
+
+                            <!-- Track Info & Like Button -->
+                            <div class="stage-track-meta">
+                                <div class="meta-texts">
+                                    <h2 class="stage-track-title" id="stageTrackTitle">Castle in the Clouds</h2>
+                                    <p class="stage-track-artist" id="stageTrackArtist">Azure Beats</p>
+                                </div>
+                                <button class="stage-like-btn" id="stageLikeBtn" type="button" aria-label="Like song" title="Add to Liked Songs">
+                                    <span class="heart-icon" id="stageLikeIcon">🤍</span>
+                                </button>
+                            </div>
+
+                            <!-- Progress Seekbar -->
+                            <div class="stage-progress-wrap">
+                                <span class="time-label" id="stageCurrentTime">0:00</span>
+                                <div class="progress-bar-container" id="stageProgressContainer">
+                                    <input
+                                        type="range"
+                                        id="stageProgressBar"
+                                        class="pixel-seek-slider"
+                                        min="0"
+                                        max="100"
+                                        value="0"
+                                    >
+                                </div>
+                                <span class="time-label" id="stageDuration">0:00</span>
+                            </div>
+
+                            <!-- Themed Center Controls Row -->
+                            <div class="stage-controls">
+                                <!-- Shuffle Button -->
+                                <button class="pixel-ctrl-btn" id="stageShuffleBtn" type="button" title="Shuffle" aria-label="Shuffle">
+                                    🔀
+                                </button>
+
+                                <!-- Previous Track Button -->
+                                <button class="pixel-ctrl-btn" id="stagePrevBtn" type="button" title="Previous Track" aria-label="Previous Track">
+                                    ⏮
+                                </button>
+
+                                <!-- Center Play/Pause Pixel Badge -->
+                                <button class="stage-play-badge" id="stagePlayBtn" type="button" title="Play or Pause" aria-label="Play or Pause">
+                                    <span class="play-badge-icon" id="stagePlayIcon">▶</span>
+                                </button>
+
+                                <!-- Next Track Button -->
+                                <button class="pixel-ctrl-btn" id="stageNextBtn" type="button" title="Next Track" aria-label="Next Track">
+                                    ⏭
+                                </button>
+
+                                <!-- Repeat Button -->
+                                <button class="pixel-ctrl-btn" id="stageRepeatBtn" type="button" title="Repeat" aria-label="Repeat">
+                                    🔁
+                                </button>
+                            </div>
 
                         </div>
 
-                        Song 1
-
                     </div>
-
-
-                    <!-- SONG 2 -->
-
-                    <div class="card">
-
-                        <img src="song posters/2.jpg" alt="Song 2">
-
-                        <div class="play">
-
-                            <audio src="songs/braam-ambient-dropper-epic-stock-media-1-00-09.mp3"></audio>
-
-                            <img src="play.svg" alt="Play">
-
-                        </div>
-
-                        Song 2
-
-                    </div>
-
-
-                    <!-- SONG 3 -->
-
-                    <div class="card">
-
-                        <img src="song posters/3.jpg" alt="Song 3">
-
-                        <div class="play">
-
-                            <audio src="songs/cinematic-suspense-investigative-mystery-219178.mp3"></audio>
-
-                            <img src="play.svg" alt="Play">
-
-                        </div>
-
-                        Song 3
-
-                    </div>
-
-
-                    <!-- SONG 4 -->
-
-                    <div class="card">
-
-                        <img src="song posters/4.jpg" alt="Song 4">
-
-                        <div class="play">
-
-                            <audio src="songs/cinematic-transition-futuristic-synth-riser-ra-music-1-00-21.mp3"></audio>
-
-                            <img src="play.svg" alt="Play">
-
-                        </div>
-
-                        Song 4
-
-                    </div>
-
-
-                    <!-- SONG 5 -->
-
-                    <div class="card">
-
-                        <img src="song posters/5.jpg" alt="Song 5">
-
-                        <div class="play">
-
-                            <audio src="songs/mixkit-big-cinematic-impact-788.mp3"></audio>
-
-                            <img src="play.svg" alt="Play">
-
-                        </div>
-
-                        Song 5
-
-                    </div>
-
-
-                    <!-- SONG 6 -->
-
-                    <div class="card">
-
-                        <img src="song posters/6.jpg" alt="Song 6">
-
-                        <div class="play">
-
-                            <audio src="songs/mixkit-cinematic-drama-riser-632.wav"></audio>
-
-                            <img src="play.svg" alt="Play">
-
-                        </div>
-
-                        Song 6
-
-                    </div>
-
-
-                    <!-- SONG 7 -->
-
-                    <div class="card">
-
-                        <img src="song posters/7.jpg" alt="Song 7">
-
-                        <div class="play">
-
-                            <audio src="songs/mixkit-cinematic-mysterious-riser-brass-2283.wav"></audio>
-
-                            <img src="play.svg" alt="Play">
-
-                        </div>
-
-                        Song 7
-
-                    </div>
-
-
-                    <!-- SONG 8 -->
-
-                    <div class="card">
-
-                        <img src="song posters/8.jpg" alt="Song 8">
-
-                        <div class="play">
-
-                            <audio src="songs/mixkit-echoes-188.mp3"></audio>
-
-                            <img src="play.svg" alt="Play">
-
-                        </div>
-
-                        Song 8
-
-                    </div>
-
-
-                    <!-- SONG 9 -->
-
-                    <div class="card">
-
-                        <img src="song posters/9.jpg" alt="Song 9">
-
-                        <div class="play">
-
-                            <audio src="songs/mixkit-fright-night-871.mp3"></audio>
-
-                            <img src="play.svg" alt="Play">
-
-                        </div>
-
-                        Song 9
-
-                    </div>
-
-
-                    <!-- SONG 10 -->
-
-                    <div class="card">
-
-                        <img src="song posters/10.jpg" alt="Song 10">
-
-                        <div class="play">
-
-                            <audio src="songs/mixkit-movie-trailer-epic-impact-2908.wav"></audio>
-
-                            <img src="play.svg" alt="Play">
-
-                        </div>
-
-                        Song 10
-
-                    </div>
-
-
-                    <!-- SONG 11 -->
-
-                    <div class="card">
-
-                        <img src="song posters/11.jpg" alt="Song 11">
-
-                        <div class="play">
-
-                            <audio src="songs/mixkit-powerful-air-whooshes-3220.wav"></audio>
-
-                            <img src="play.svg" alt="Play">
-
-                        </div>
-
-                        Song 11
-
-                    </div>
-
-
-                    <!-- SONG 12 -->
-
-                    <div class="card">
-
-                        <img src="song posters/12.jpg" alt="Song 12">
-
-                        <div class="play">
-
-                            <audio src="songs/mixkit-heartbeat-medium-speed-495.wav"></audio>
-
-                            <img src="play.svg" alt="Play">
-
-                        </div>
-
-                        Song 12
-
-                    </div>
-
                 </div>
 
-            </div>
+                <!-- Explore / Library Grid Views (when toggled from sidebar) -->
+                <div class="stage-secondary-view" id="stageSecondaryView" style="display: none;">
+                    <div class="secondary-view-header">
+                        <button class="pixel-btn pixel-btn-ghost" id="backToPlayerBtn" type="button">← Back to Player</button>
+                        <h2 id="secondaryViewTitle">All Songs</h2>
+                        <button class="pixel-btn pixel-btn-primary" id="secondaryAddSongBtn" type="button">+ Add Song</button>
+                    </div>
+                    <div class="secondary-song-grid" id="secondarySongGrid">
+                        <!-- Dynamic Cards -->
+                    </div>
+                </div>
+
+            </main>
+
+
+            <!-- =========================
+                 RIGHT COLUMN ("Up Next" Panel)
+                 ========================= -->
+            <aside class="pixel-queue-panel">
+                <!-- Up Next Banner Header -->
+                <div class="queue-header-banner">
+                    <div class="queue-title-row">
+                        <span class="queue-icon">📜</span>
+                        <h3 class="queue-title">Up Next</h3>
+                    </div>
+                    <button class="pixel-btn pixel-btn-sm" id="queueAddSongBtn" type="button" title="Add track to queue">+ Add</button>
+                </div>
+
+                <!-- Song Queue List -->
+                <div class="queue-list" id="queueList">
+                    <!-- Populated dynamically by JS -->
+                </div>
+
+                <!-- Queue Empty State -->
+                <div class="queue-empty" id="queueEmpty" style="display: none;">
+                    <span class="queue-empty-icon">🎵</span>
+                    <p>No tracks in queue.</p>
+                    <button class="pixel-btn pixel-btn-sm pixel-btn-primary" id="queueEmptyAddBtn" type="button">Add First Track</button>
+                </div>
+            </aside>
 
         </div>
 
 
         <!-- =========================
-            SIGN UP MODAL
-        ========================== -->
-
-        <div class="auth-modal" id="signupModal" aria-hidden="true">
-            <div class="auth-modal-box" role="dialog" aria-modal="true" aria-labelledby="signupModalTitle">
-
-                <div class="auth-modal-header">
-                    <h2 id="signupModalTitle">Create account</h2>
-                    <button class="auth-close-btn" id="closeSignupBtn" type="button" aria-label="Close">×</button>
+             BOTTOM PERSISTENT PLAYER BAR
+             ========================= -->
+        <footer class="pixel-bottom-bar" id="bottomPlayerBar">
+            <!-- Track Info -->
+            <div class="bottom-track-info">
+                <img src="assets/themes/cover_castle.png" alt="Cover" class="bottom-cover" id="bottomCover">
+                <div class="bottom-text-wrap">
+                    <span class="bottom-title" id="bottomTitle">Castle in the Clouds</span>
+                    <span class="bottom-artist" id="bottomArtist">Azure Beats</span>
                 </div>
-
-                <p class="auth-subtitle">Make your own personal music space.</p>
-
-                <form id="signupForm" class="auth-form">
-                    <label for="signupName">Name</label>
-                    <input id="signupName" type="text" placeholder="Your name" autocomplete="name" required>
-
-                    <label for="signupEmail">Email</label>
-                    <input id="signupEmail" type="email" placeholder="you@example.com" autocomplete="email" required>
-
-                    <label for="signupPassword">Password</label>
-                    <input id="signupPassword" type="password" placeholder="Create a password" autocomplete="new-password" required>
-
-                    <label for="signupConfirmPassword">Confirm password</label>
-                    <input id="signupConfirmPassword" type="password" placeholder="Repeat your password" autocomplete="new-password" required>
-
-                    <p class="auth-message" id="signupMessage" aria-live="polite"></p>
-
-                    <button class="auth-submit-btn" type="submit">Sign up</button>
-                </form>
-
-                <p class="auth-switch">Already have an account? <button type="button" id="switchToLoginBtn">Log in</button></p>
-
+                <button class="bottom-like-btn" id="bottomLikeBtn" type="button" title="Like song">
+                    <span id="bottomLikeIcon">🤍</span>
+                </button>
             </div>
-        </div>
 
-
-        <!-- =========================
-            LOG IN MODAL
-        ========================== -->
-
-        <div class="auth-modal" id="loginModal" aria-hidden="true">
-            <div class="auth-modal-box" role="dialog" aria-modal="true" aria-labelledby="loginModalTitle">
-
-                <div class="auth-modal-header">
-                    <h2 id="loginModalTitle">Welcome back</h2>
-                    <button class="auth-close-btn" id="closeLoginBtn" type="button" aria-label="Close">×</button>
-                </div>
-
-                <p class="auth-subtitle">Log in to your personal music space.</p>
-
-                <form id="loginForm" class="auth-form">
-                    <label for="loginEmail">Email</label>
-                    <input id="loginEmail" type="email" placeholder="you@example.com" autocomplete="email" required>
-
-                    <label for="loginPassword">Password</label>
-                    <input id="loginPassword" type="password" placeholder="Your password" autocomplete="current-password" required>
-
-                    <p class="auth-message" id="loginMessage" aria-live="polite"></p>
-
-                    <button class="auth-submit-btn" type="submit">Log in</button>
-                </form>
-
-                <p class="auth-switch">New here? <button type="button" id="switchToSignupBtn">Create an account</button></p>
-
-            </div>
-        </div>
-
-
-        <!-- =========================
-            ADD SONG MODAL
-        ========================== -->
-
-        <div class="add-song-modal" id="addSongModal" aria-hidden="true">
-            <div class="add-song-modal-box" role="dialog" aria-modal="true" aria-labelledby="addSongModalTitle">
-
-                <div class="add-song-modal-header">
-                    <h2 id="addSongModalTitle">Add Song</h2>
-                    <button
-                        class="close-add-song-btn"
-                        id="closeAddSongBtn"
-                        type="button"
-                        aria-label="Close"
-                    >
-                        ×
+            <!-- Controls & Seekbar -->
+            <div class="bottom-center-ctrls">
+                <div class="bottom-buttons-row">
+                    <button class="bottom-btn" id="bottomShuffleBtn" type="button" title="Shuffle">🔀</button>
+                    <button class="bottom-btn" id="bottomPrevBtn" type="button" title="Previous">⏮</button>
+                    <button class="bottom-play-btn" id="bottomPlayBtn" type="button" title="Play or Pause">
+                        <span id="bottomPlayIcon">▶</span>
                     </button>
+                    <button class="bottom-btn" id="bottomNextBtn" type="button" title="Next">⏭</button>
+                    <button class="bottom-btn" id="bottomRepeatBtn" type="button" title="Repeat">🔁</button>
                 </div>
 
-                <form id="addSongForm">
+                <div class="bottom-seek-row">
+                    <span class="bottom-time" id="bottomCurrentTime">0:00</span>
+                    <input
+                        type="range"
+                        id="bottomProgressBar"
+                        class="pixel-seek-slider"
+                        min="0"
+                        max="100"
+                        value="0"
+                    >
+                    <span class="bottom-time" id="bottomDuration">0:00</span>
+                </div>
+            </div>
 
-                    <label for="newSongName">Song name</label>
+            <!-- Volume & Settings -->
+            <div class="bottom-right-ctrls">
+                <button class="volume-btn" id="muteToggleBtn" type="button" title="Mute/Unmute">🔊</button>
+                <input
+                    type="range"
+                    id="volumeSlider"
+                    class="pixel-volume-slider"
+                    min="0"
+                    max="100"
+                    value="80"
+                    title="Volume"
+                >
+                <button class="theme-quick-btn" id="bottomThemeBtn" type="button" title="Change Theme">⚙️</button>
+            </div>
+        </footer>
+
+    </div>
+
+
+    <!-- ========================================================
+         3. CHOOSE YOUR THEME MODAL (Post-Signup & Theme Switcher)
+         ======================================================== -->
+    <div class="pixel-modal" id="themePickerModal" aria-hidden="true" style="display: none;">
+        <div class="pixel-modal-backdrop" id="themePickerBackdrop"></div>
+        <div class="pixel-modal-box theme-modal-box">
+
+            <div class="theme-modal-header">
+                <img src="assets/themes/crown.png" alt="Crown" class="theme-crown-large">
+                <h2 class="theme-modal-title">Choose Your Theme</h2>
+                <p class="theme-modal-subtitle">Customize the look and feel of your music kingdom</p>
+                <button class="pixel-close-btn" id="closeThemeModalBtn" type="button" aria-label="Close">×</button>
+            </div>
+
+            <!-- 3 Theme Options from Screenshot -->
+            <div class="theme-cards-list">
+
+                <!-- Theme 1: Castle Kingdom (Default) -->
+                <div class="theme-select-card selected" data-theme-id="castle" id="themeOptionCastle">
+                    <div class="theme-thumb-wrap">
+                        <img src="assets/themes/thumb_castle.png" alt="Castle Kingdom" class="theme-thumb-img">
+                    </div>
+                    <div class="theme-details">
+                        <div class="theme-option-title">Castle Kingdom</div>
+                        <div class="theme-option-desc">A royal music hall in a pixel castle.</div>
+                    </div>
+                    <div class="theme-radio-box">
+                        <span class="theme-radio-check">✓</span>
+                    </div>
+                </div>
+
+                <!-- Theme 2: Forest Sanctuary -->
+                <div class="theme-select-card" data-theme-id="forest" id="themeOptionForest">
+                    <div class="theme-thumb-wrap">
+                        <img src="assets/themes/thumb_forest.png" alt="Forest Sanctuary" class="theme-thumb-img">
+                    </div>
+                    <div class="theme-details">
+                        <div class="theme-option-title">Forest Sanctuary</div>
+                        <div class="theme-option-desc">A peaceful nature retreat for your music.</div>
+                    </div>
+                    <div class="theme-radio-box">
+                        <span class="theme-radio-check">✓</span>
+                    </div>
+                </div>
+
+                <!-- Theme 3: Snowpeak Fortress -->
+                <div class="theme-select-card" data-theme-id="snowpeak" id="themeOptionSnowpeak">
+                    <div class="theme-thumb-wrap">
+                        <img src="assets/themes/thumb_snowpeak.png" alt="Snowpeak Fortress" class="theme-thumb-img">
+                    </div>
+                    <div class="theme-details">
+                        <div class="theme-option-title">Snowpeak Fortress</div>
+                        <div class="theme-option-desc">A calm and cozy fortress in the mountains.</div>
+                    </div>
+                    <div class="theme-radio-box">
+                        <span class="theme-radio-check">✓</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="theme-modal-actions">
+                <button class="pixel-btn pixel-btn-primary pixel-btn-block pixel-btn-lg" id="confirmThemeBtn" type="button">
+                    Enter My Kingdom ⚔️
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ========================================================
+         4. ADD SONG MODAL
+         ======================================================== -->
+    <div class="pixel-modal" id="addSongModal" aria-hidden="true" style="display: none;">
+        <div class="pixel-modal-backdrop" id="addSongBackdrop"></div>
+        <div class="pixel-modal-box add-song-modal-box">
+
+            <div class="pixel-modal-header">
+                <h2>Add Song to Kingdom</h2>
+                <button class="pixel-close-btn" id="closeAddSongBtn" type="button" aria-label="Close">×</button>
+            </div>
+
+            <form id="addSongForm" class="pixel-form">
+                <div class="form-group">
+                    <label for="newSongName">Song Title *</label>
                     <input
                         id="newSongName"
                         type="text"
-                        placeholder="Enter song name"
+                        placeholder="e.g. Castle in the Clouds"
                         autocomplete="off"
                         required
                     >
+                </div>
 
-                    <label for="newSongFile">Add file</label>
+                <div class="form-group">
+                    <label for="newSongArtist">Artist Name</label>
                     <input
-                        id="newSongFile"
-                        type="file"
-                        accept="audio/*"
-                        required
+                        id="newSongArtist"
+                        type="text"
+                        placeholder="e.g. Azure Beats"
+                        autocomplete="off"
                     >
+                </div>
 
-                    <label for="newSongBanner">Choose banner</label>
-                    <input
-                        id="newSongBanner"
-                        type="file"
-                        accept="image/*"
-                        required
-                    >
+                <div class="form-group">
+                    <label for="newSongAudio">Audio File * (MP3, WAV, FLAC, OGG, M4A)</label>
+                    <div class="file-drop-area" id="audioDropArea">
+                        <span class="file-drop-icon">🎵</span>
+                        <span class="file-drop-label" id="audioDropLabel">Choose audio file or drop here</span>
+                        <input
+                            id="newSongAudio"
+                            type="file"
+                            accept="audio/*"
+                            required
+                        >
+                    </div>
+                </div>
 
-                    <button
-                        class="save-new-song-btn"
-                        type="submit"
-                    >
-                        Add Song
-                    </button>
+                <div class="form-group">
+                    <label>Choose Album Cover</label>
+                    <div class="cover-selection-grid">
+                        <label class="cover-preset-option selected">
+                            <input type="radio" name="coverPreset" value="castle" checked>
+                            <img src="assets/themes/cover_castle.png" alt="Castle Sunset">
+                            <span>Castle</span>
+                        </label>
+                        <label class="cover-preset-option">
+                            <input type="radio" name="coverPreset" value="forest">
+                            <img src="assets/themes/cover_forest.png" alt="Forest Waterfall">
+                            <span>Forest</span>
+                        </label>
+                        <label class="cover-preset-option">
+                            <input type="radio" name="coverPreset" value="snowpeak">
+                            <img src="assets/themes/cover_snowpeak.png" alt="Snowpeak Aurora">
+                            <span>Snowpeak</span>
+                        </label>
+                    </div>
 
-                </form>
-            </div>
+                    <div class="or-separator"><span>OR UPLOAD CUSTOM IMAGE</span></div>
+
+                    <div class="file-drop-area file-drop-area-sm" id="bannerDropArea">
+                        <span class="file-drop-icon">🖼️</span>
+                        <span class="file-drop-label" id="bannerDropLabel">Optional custom banner image</span>
+                        <input
+                            id="newSongBanner"
+                            type="file"
+                            accept="image/*"
+                        >
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="pixel-btn pixel-btn-ghost" id="cancelAddSongBtn" type="button">Cancel</button>
+                    <button class="pixel-btn pixel-btn-primary" type="submit">Add Song 🎵</button>
+                </div>
+            </form>
+
         </div>
+    </div>
 
 
-        <script src="script.js"></script>
+    <!-- ========================================================
+         5. SIGN UP MODAL
+         ======================================================== -->
+    <div class="pixel-modal" id="signupModal" aria-hidden="true" style="display: none;">
+        <div class="pixel-modal-backdrop" id="signupBackdrop"></div>
+        <div class="pixel-modal-box auth-modal-box">
 
-    </body>
+            <div class="pixel-modal-header">
+                <h2>Create Your Kingdom Account</h2>
+                <button class="pixel-close-btn" id="closeSignupBtn" type="button" aria-label="Close">×</button>
+            </div>
+            <p class="auth-modal-sub">Create an account to save your audio library and custom realm.</p>
 
-    </html>
+            <form id="signupForm" class="pixel-form">
+                <div class="form-group">
+                    <label for="signupName">Adventurer Name</label>
+                    <input id="signupName" type="text" placeholder="e.g. PixelHero" autocomplete="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="signupEmail">Email</label>
+                    <input id="signupEmail" type="email" placeholder="you@kingdom.com" autocomplete="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="signupPassword">Password</label>
+                    <input id="signupPassword" type="password" placeholder="Create a password" autocomplete="new-password" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="signupConfirmPassword">Confirm Password</label>
+                    <input id="signupConfirmPassword" type="password" placeholder="Repeat your password" autocomplete="new-password" required>
+                </div>
+
+                <p class="auth-error-msg" id="signupMessage" aria-live="polite"></p>
+
+                <button class="pixel-btn pixel-btn-primary pixel-btn-block" type="submit">Sign Up 👑</button>
+            </form>
+
+            <p class="auth-switch-text">
+                Already an adventurer? <button type="button" class="inline-link-btn" id="switchToLoginBtn">Log in</button>
+            </p>
+
+        </div>
+    </div>
+
+
+    <!-- ========================================================
+         6. LOG IN MODAL
+         ======================================================== -->
+    <div class="pixel-modal" id="loginModal" aria-hidden="true" style="display: none;">
+        <div class="pixel-modal-backdrop" id="loginBackdrop"></div>
+        <div class="pixel-modal-box auth-modal-box">
+
+            <div class="pixel-modal-header">
+                <h2>Welcome Back</h2>
+                <button class="pixel-close-btn" id="closeLoginBtn" type="button" aria-label="Close">×</button>
+            </div>
+            <p class="auth-modal-sub">Log in to enter your personal music kingdom.</p>
+
+            <form id="loginForm" class="pixel-form">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input id="loginEmail" type="email" placeholder="you@kingdom.com" autocomplete="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input id="loginPassword" type="password" placeholder="Enter your password" autocomplete="current-password" required>
+                </div>
+
+                <p class="auth-error-msg" id="loginMessage" aria-live="polite"></p>
+
+                <button class="pixel-btn pixel-btn-primary pixel-btn-block" type="submit">Enter Kingdom ⚔️</button>
+            </form>
+
+            <p class="auth-switch-text">
+                New adventurer? <button type="button" class="inline-link-btn" id="switchToSignupBtn">Create account</button>
+            </p>
+
+        </div>
+    </div>
+
+    <!-- Main Logic Script -->
+    <script src="script.js"></script>
+
+</body>
+</html>

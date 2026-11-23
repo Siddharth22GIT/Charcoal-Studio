@@ -1,2829 +1,1210 @@
-// ============================================
-// SONG DATA
-// ============================================
-
-const originalCards = Array.from(
-    document.querySelectorAll(".card")
-);
-
-let songs = originalCards.map((card, index) => {
-
-    const audio = card.querySelector("audio");
-
-    return {
-        id: `builtin-${index + 1}`,
-        title: `Song ${index + 1}`,
-        src: audio.src,
-        poster: card.querySelector("img").src,
-        custom: false
-    };
-
-});
+// ========================================================
+// PIXELTUNES - SCRIPT
+// 16-Bit Pixel Audio Kingdom
+// ========================================================
 
 const USERS_KEY = "gotoSongUsers";
 const CURRENT_USER_KEY = "gotoSongCurrentUser";
-const LEGACY_MIGRATED_KEY = "gotoSongLegacyMigrated";
-const DELETED_SONGS_KEY = "spotifyDeletedSongs";
-const PLAYLISTS_KEY = "spotifyPlaylists";
+const THEME_KEY = "pixelTunesTheme";
 const SONG_DB_NAME = "gotoSongDatabase";
 const SONG_STORE_NAME = "customSongs";
 
-let currentUser = JSON.parse(
-    localStorage.getItem(CURRENT_USER_KEY) || "null"
-);
+// Application State
+let currentUser = JSON.parse(localStorage.getItem(CURRENT_USER_KEY) || "null");
+let currentTheme = localStorage.getItem(THEME_KEY) || "castle";
+let songs = [];
+let filteredSongs = [];
+let currentSongIndex = -1;
+let isPlaying = false;
+let isShuffle = false;
+let repeatMode = "none"; // 'none' | 'all' | 'one'
+let likedSongIds = new Set();
+let isGuestMode = false;
 
-let deletedSongIds = new Set();
+// Audio Instance
+const audioPlayer = new Audio();
+const objectUrlCache = new Map();
 
-const objectUrls = new Map();
+// ========================================================
+// DOM ELEMENTS
+// ========================================================
+
+// Views
+const landingScreen = document.getElementById("landingScreen");
+const appContainer = document.getElementById("appContainer");
+const starfieldCanvas = document.getElementById("starfieldCanvas");
+
+// Landing Elements
+const landingLoginNavBtn = document.getElementById("landingLoginNavBtn");
+const landingSignupNavBtn = document.getElementById("landingSignupNavBtn");
+const heroSignupBtn = document.getElementById("heroSignupBtn");
+const heroLoginBtn = document.getElementById("heroLoginBtn");
+const heroExploreBtn = document.getElementById("heroExploreBtn");
+const floatingCards = document.querySelectorAll(".floating-card");
+
+// App Header
+const brandLogoHome = document.getElementById("brandLogoHome");
+const searchInput = document.getElementById("searchInput");
+const clearSearchBtn = document.getElementById("clearSearchBtn");
+const openThemePickerBtn = document.getElementById("openThemePickerBtn");
+const activeThemeLabel = document.getElementById("activeThemeLabel");
+const authButtons = document.getElementById("authButtons");
+
+// Sidebar
+const navHome = document.getElementById("navHome");
+const navExplore = document.getElementById("navExplore");
+const navLibrary = document.getElementById("navLibrary");
+const navPlaylists = document.getElementById("navPlaylists");
+const navLiked = document.getElementById("navLiked");
+const sidebarAddSongBtn = document.getElementById("sidebarAddSongBtn");
+const libraryCount = document.getElementById("libraryCount");
+const likedCount = document.getElementById("likedCount");
+
+// Stage Arch & Scenery
+const bannerEmblem = document.getElementById("bannerEmblem");
+const scenicLandscape = document.getElementById("scenicLandscape");
+const nirvanaEmptyState = document.getElementById("nirvanaEmptyState");
+const nirvanaAddBtn = document.getElementById("nirvanaAddBtn");
+const nirvanaDropzone = document.getElementById("nirvanaDropzone");
+const nowPlayingCard = document.getElementById("nowPlayingCard");
+
+// Stage Player Controls
+const stageAlbumArt = document.getElementById("stageAlbumArt");
+const stageTrackTitle = document.getElementById("stageTrackTitle");
+const stageTrackArtist = document.getElementById("stageTrackArtist");
+const stageLikeBtn = document.getElementById("stageLikeBtn");
+const stageLikeIcon = document.getElementById("stageLikeIcon");
+const stageCurrentTime = document.getElementById("stageCurrentTime");
+const stageDuration = document.getElementById("stageDuration");
+const stageProgressBar = document.getElementById("stageProgressBar");
+const stageShuffleBtn = document.getElementById("stageShuffleBtn");
+const stagePrevBtn = document.getElementById("stagePrevBtn");
+const stagePlayBtn = document.getElementById("stagePlayBtn");
+const stagePlayIcon = document.getElementById("stagePlayIcon");
+const stageNextBtn = document.getElementById("stageNextBtn");
+const stageRepeatBtn = document.getElementById("stageRepeatBtn");
+
+// Secondary Stage Views
+const stageSecondaryView = document.getElementById("stageSecondaryView");
+const secondaryViewTitle = document.getElementById("secondaryViewTitle");
+const secondarySongGrid = document.getElementById("secondarySongGrid");
+const backToPlayerBtn = document.getElementById("backToPlayerBtn");
+const secondaryAddSongBtn = document.getElementById("secondaryAddSongBtn");
+
+// Queue Panel
+const queueList = document.getElementById("queueList");
+const queueEmpty = document.getElementById("queueEmpty");
+const queueAddSongBtn = document.getElementById("queueAddSongBtn");
+const queueEmptyAddBtn = document.getElementById("queueEmptyAddBtn");
+
+// Bottom Player Bar
+const bottomPlayerBar = document.getElementById("bottomPlayerBar");
+const bottomCover = document.getElementById("bottomCover");
+const bottomTitle = document.getElementById("bottomTitle");
+const bottomArtist = document.getElementById("bottomArtist");
+const bottomLikeBtn = document.getElementById("bottomLikeBtn");
+const bottomLikeIcon = document.getElementById("bottomLikeIcon");
+const bottomShuffleBtn = document.getElementById("bottomShuffleBtn");
+const bottomPrevBtn = document.getElementById("bottomPrevBtn");
+const bottomPlayBtn = document.getElementById("bottomPlayBtn");
+const bottomPlayIcon = document.getElementById("bottomPlayIcon");
+const bottomNextBtn = document.getElementById("bottomNextBtn");
+const bottomRepeatBtn = document.getElementById("bottomRepeatBtn");
+const bottomCurrentTime = document.getElementById("bottomCurrentTime");
+const bottomDuration = document.getElementById("bottomDuration");
+const bottomProgressBar = document.getElementById("bottomProgressBar");
+const muteToggleBtn = document.getElementById("muteToggleBtn");
+const volumeSlider = document.getElementById("volumeSlider");
+const bottomThemeBtn = document.getElementById("bottomThemeBtn");
+
+// Modals
+const themePickerModal = document.getElementById("themePickerModal");
+const themePickerBackdrop = document.getElementById("themePickerBackdrop");
+const closeThemeModalBtn = document.getElementById("closeThemeModalBtn");
+const themeSelectCards = document.querySelectorAll(".theme-select-card");
+const confirmThemeBtn = document.getElementById("confirmThemeBtn");
+
+const addSongModal = document.getElementById("addSongModal");
+const addSongBackdrop = document.getElementById("addSongBackdrop");
+const closeAddSongBtn = document.getElementById("closeAddSongBtn");
+const cancelAddSongBtn = document.getElementById("cancelAddSongBtn");
+const addSongForm = document.getElementById("addSongForm");
+const newSongName = document.getElementById("newSongName");
+const newSongArtist = document.getElementById("newSongArtist");
+const newSongAudio = document.getElementById("newSongAudio");
+const newSongBanner = document.getElementById("newSongBanner");
+const audioDropLabel = document.getElementById("audioDropLabel");
+const bannerDropLabel = document.getElementById("bannerDropLabel");
+const coverPresetOptions = document.querySelectorAll(".cover-preset-option");
+
+const signupModal = document.getElementById("signupModal");
+const signupBackdrop = document.getElementById("signupBackdrop");
+const closeSignupBtn = document.getElementById("closeSignupBtn");
+const signupForm = document.getElementById("signupForm");
+const signupName = document.getElementById("signupName");
+const signupEmail = document.getElementById("signupEmail");
+const signupPassword = document.getElementById("signupPassword");
+const signupConfirmPassword = document.getElementById("signupConfirmPassword");
+const signupMessage = document.getElementById("signupMessage");
+const switchToLoginBtn = document.getElementById("switchToLoginBtn");
+
+const loginModal = document.getElementById("loginModal");
+const loginBackdrop = document.getElementById("loginBackdrop");
+const closeLoginBtn = document.getElementById("closeLoginBtn");
+const loginForm = document.getElementById("loginForm");
+const loginEmail = document.getElementById("loginEmail");
+const loginPassword = document.getElementById("loginPassword");
+const loginMessage = document.getElementById("loginMessage");
+const switchToSignupBtn = document.getElementById("switchToSignupBtn");
 
 
-// ============================================
-// INDEXED DB - CUSTOM SONG STORAGE
-// ============================================
+// ========================================================
+// 1. INDEXED DB STORAGE ENGINE (Local & Persistent)
+// ========================================================
 
 function openSongDatabase() {
-
     return new Promise((resolve, reject) => {
-
         if (!window.indexedDB) {
-            reject(
-                new Error("IndexedDB is not supported by this browser.")
-            );
+            reject(new Error("IndexedDB is not supported."));
             return;
         }
 
-        const request = indexedDB.open(
-            SONG_DB_NAME,
-            2
-        );
+        const request = indexedDB.open(SONG_DB_NAME, 2);
 
         request.onupgradeneeded = event => {
-
             const db = event.target.result;
-
             if (!db.objectStoreNames.contains(SONG_STORE_NAME)) {
-                db.createObjectStore(
-                    SONG_STORE_NAME,
-                    { keyPath: "id" }
-                );
+                db.createObjectStore(SONG_STORE_NAME, { keyPath: "id" });
             }
-
         };
 
-        request.onsuccess = () => {
-            resolve(request.result);
-        };
-
-        request.onerror = () => {
-            reject(request.error);
-        };
-
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
     });
-
 }
 
-
-function getCustomSongsFromDatabase() {
-
+function getSongsFromDatabase() {
     return openSongDatabase().then(db => {
-
         return new Promise((resolve, reject) => {
-
-            const transaction = db.transaction(
-                SONG_STORE_NAME,
-                "readonly"
-            );
-
-            const store = transaction.objectStore(
-                SONG_STORE_NAME
-            );
-
+            const transaction = db.transaction(SONG_STORE_NAME, "readonly");
+            const store = transaction.objectStore(SONG_STORE_NAME);
             const request = store.getAll();
 
             request.onsuccess = () => {
                 const records = request.result || [];
-
-                resolve(
-                    currentUser
-                        ? records.filter(
-                            song => song.userId === currentUser.id
-                        )
-                        : []
-                );
+                const targetUserId = currentUser ? currentUser.id : "guest";
+                // Filter songs belonging to this user or guest
+                const userRecords = records.filter(s => s.userId === targetUserId);
+                resolve(userRecords);
             };
 
-            request.onerror = () => {
-                reject(request.error);
-            };
-
-            transaction.oncomplete = () => {
-                db.close();
-            };
-
+            request.onerror = () => reject(request.error);
+            transaction.oncomplete = () => db.close();
         });
-
     });
-
 }
 
-
-function saveCustomSongToDatabase(songRecord) {
-
+function saveSongToDatabase(songRecord) {
     return openSongDatabase().then(db => {
-
         return new Promise((resolve, reject) => {
-
-            const transaction = db.transaction(
-                SONG_STORE_NAME,
-                "readwrite"
-            );
-
+            const transaction = db.transaction(SONG_STORE_NAME, "readwrite");
             const record = {
                 ...songRecord,
-                userId: currentUser.id
+                userId: currentUser ? currentUser.id : "guest"
             };
 
-            transaction.objectStore(
-                SONG_STORE_NAME
-            ).put(record);
+            transaction.objectStore(SONG_STORE_NAME).put(record);
 
             transaction.oncomplete = () => {
                 db.close();
                 resolve();
             };
-
             transaction.onerror = () => {
                 db.close();
                 reject(transaction.error);
             };
-
         });
-
     });
-
 }
 
-
-function deleteCustomSongFromDatabase(songId) {
-
+function deleteSongFromDatabase(songId) {
     return openSongDatabase().then(db => {
-
         return new Promise((resolve, reject) => {
-
-            const transaction = db.transaction(
-                SONG_STORE_NAME,
-                "readwrite"
-            );
-
-            transaction.objectStore(
-                SONG_STORE_NAME
-            ).delete(songId);
+            const transaction = db.transaction(SONG_STORE_NAME, "readwrite");
+            transaction.objectStore(SONG_STORE_NAME).delete(songId);
 
             transaction.oncomplete = () => {
                 db.close();
                 resolve();
             };
-
             transaction.onerror = () => {
                 db.close();
                 reject(transaction.error);
             };
-
         });
-
     });
-
 }
 
 
-// ============================================
-// CLAIM LEGACY CUSTOM SONGS
-// ============================================
+// ========================================================
+// 2. THEME ENGINE (Castle, Forest, Snowpeak)
+// ========================================================
 
-function claimLegacyCustomSongs(userId) {
+const THEME_CONFIG = {
+    castle: {
+        name: "Castle Kingdom",
+        bodyClass: "theme-castle",
+        emblem: "🎵",
+        defaultCover: "assets/themes/cover_castle.png"
+    },
+    forest: {
+        name: "Forest Sanctuary",
+        bodyClass: "theme-forest",
+        emblem: "🍃",
+        defaultCover: "assets/themes/cover_forest.png"
+    },
+    snowpeak: {
+        name: "Snowpeak Fortress",
+        bodyClass: "theme-snowpeak",
+        emblem: "❄️",
+        defaultCover: "assets/themes/cover_snowpeak.png"
+    }
+};
 
-    return openSongDatabase().then(db => {
+function applyTheme(themeKey) {
+    if (!THEME_CONFIG[themeKey]) themeKey = "castle";
+    currentTheme = themeKey;
 
-        return new Promise((resolve, reject) => {
+    document.body.className = THEME_CONFIG[themeKey].bodyClass;
+    bannerEmblem.textContent = THEME_CONFIG[themeKey].emblem;
+    activeThemeLabel.textContent = THEME_CONFIG[themeKey].name;
 
-            const transaction = db.transaction(
-                SONG_STORE_NAME,
-                "readwrite"
-            );
+    localStorage.setItem(THEME_KEY, themeKey);
+    if (currentUser) {
+        currentUser.theme = themeKey;
+        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
+    }
 
-            const store = transaction.objectStore(
-                SONG_STORE_NAME
-            );
-
-            const request = store.getAll();
-
-            request.onsuccess = () => {
-
-                (request.result || []).forEach(song => {
-
-                    if (!song.userId) {
-                        song.userId = userId;
-                        store.put(song);
-                    }
-
-                });
-
-            };
-
-            request.onerror = () => {
-                reject(request.error);
-            };
-
-            transaction.oncomplete = () => {
-                db.close();
-                resolve();
-            };
-
-            transaction.onerror = () => {
-                db.close();
-                reject(transaction.error);
-            };
-
-        });
-
+    // Update Theme Picker selected card
+    themeSelectCards.forEach(card => {
+        const isMatch = card.dataset.themeId === themeKey;
+        card.classList.toggle("selected", isMatch);
     });
+}
 
+function openThemePicker() {
+    themePickerModal.style.display = "flex";
+    themePickerModal.setAttribute("aria-hidden", "false");
+}
+
+function closeThemePicker() {
+    themePickerModal.style.display = "none";
+    themePickerModal.setAttribute("aria-hidden", "true");
 }
 
 
-// ============================================
-// MUSIC PLAYER
-// ============================================
-
-let currentSongIndex = -1;
-let currentSongId = null;
-let currentAudio = null;
-let visibleSongIndexes = [];
-
-
-// ============================================
-// CREATE PLAYER
-// ============================================
-
-const player = document.createElement("div");
-
-player.className = "player";
-
-player.innerHTML = `
-
-    <div class="player-top">
-
-        <div class="player-song-info">
-
-            <span class="player-title">
-                No song selected
-            </span>
-
-        </div>
-
-        <div class="controls">
-
-            <button
-                class="previous-btn"
-                type="button"
-            >
-                ⏮
-            </button>
-
-            <button
-                class="main-play-btn"
-                type="button"
-            >
-                ▶
-            </button>
-
-            <button
-                class="next-btn"
-                type="button"
-            >
-                ⏭
-            </button>
-
-        </div>
-
-        <div class="volume-container">
-
-            <span>🔊</span>
-
-            <input
-                class="volume"
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value="1"
-            >
-
-        </div>
-
-    </div>
-
-    <div class="progress-container">
-
-        <span class="current-time">
-            0:00
-        </span>
-
-        <input
-            class="progress"
-            type="range"
-            min="0"
-            max="100"
-            value="0"
-            step="0.1"
-        >
-
-        <span class="duration">
-            0:00
-        </span>
-
-    </div>
-
-`;
-
-document
-    .querySelector(".right")
-    .appendChild(player);
-
-
-// ============================================
-// PLAYER ELEMENTS
-// ============================================
-
-const mainPlayBtn =
-    player.querySelector(".main-play-btn");
-
-const previousBtn =
-    player.querySelector(".previous-btn");
-
-const nextBtn =
-    player.querySelector(".next-btn");
-
-const progress =
-    player.querySelector(".progress");
-
-const volume =
-    player.querySelector(".volume");
-
-const currentTimeText =
-    player.querySelector(".current-time");
-
-const durationText =
-    player.querySelector(".duration");
-
-const playerTitle =
-    player.querySelector(".player-title");
-
-
-// ============================================
-// FORMAT TIME
-// ============================================
-
-function formatTime(seconds) {
-
-    if (!isFinite(seconds)) {
-        return "0:00";
-    }
-
-    const minutes =
-        Math.floor(seconds / 60);
-
-    const remainingSeconds =
-        Math.floor(seconds % 60);
-
-    return `${minutes}:${remainingSeconds
-        .toString()
-        .padStart(2, "0")}`;
-
-}
-
-
-// ============================================
-// LOAD SONG
-// ============================================
-
-function loadSong(index, shouldPlay = true) {
-
-    if (
-        index < 0 ||
-        index >= songs.length
-    ) {
-        return;
-    }
-
-    currentSongIndex = index;
-    currentSongId = songs[index].id;
-
-    if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.currentTime = 0;
-    }
-
-    currentAudio = new Audio(songs[index].src);
-
-    currentAudio.volume =
-        Number(volume.value);
-
-    playerTitle.textContent =
-        songs[index].title;
-
-    player.classList.add("active");
-
-    progress.value = 0;
-    currentTimeText.textContent = "0:00";
-    durationText.textContent = "0:00";
-
-    currentAudio.addEventListener(
-        "loadedmetadata",
-        () => {
-
-            progress.max =
-                currentAudio.duration || 100;
-
-            durationText.textContent =
-                formatTime(currentAudio.duration);
-
-        }
-    );
-
-    currentAudio.addEventListener(
-        "timeupdate",
-        () => {
-
-            progress.max =
-                currentAudio.duration || 100;
-
-            progress.value =
-                currentAudio.currentTime;
-
-            currentTimeText.textContent =
-                formatTime(currentAudio.currentTime);
-
-        }
-    );
-
-    currentAudio.addEventListener(
-        "ended",
-        () => {
-
-            const position =
-                visibleSongIndexes.indexOf(currentSongIndex);
-
-            if (
-                position !== -1 &&
-                position < visibleSongIndexes.length - 1
-            ) {
-
-                loadSong(
-                    visibleSongIndexes[position + 1],
-                    true
-                );
-
-            } else {
-
-                mainPlayBtn.textContent = "▶";
-
-            }
-
-        }
-    );
-
-    if (shouldPlay) {
-
-        currentAudio
-            .play()
-            .then(() => {
-                mainPlayBtn.textContent = "⏸";
-            })
-            .catch(() => {
-                mainPlayBtn.textContent = "▶";
-            });
-
-    }
-
-}
-
-
-// ============================================
-// PLAY / PAUSE
-// ============================================
-
-mainPlayBtn.addEventListener(
-    "click",
-    () => {
-
-        if (!currentAudio) {
-            return;
-        }
-
-        if (currentAudio.paused) {
-
-            currentAudio.play();
-            mainPlayBtn.textContent = "⏸";
-
-        } else {
-
-            currentAudio.pause();
-            mainPlayBtn.textContent = "▶";
-
-        }
-
-    }
-);
-
-
-// ============================================
-// PREVIOUS
-// ============================================
-
-previousBtn.addEventListener(
-    "click",
-    () => {
-
-        const position =
-            visibleSongIndexes.indexOf(currentSongIndex);
-
-        if (position > 0) {
-
-            loadSong(
-                visibleSongIndexes[position - 1],
-                true
-            );
-
-        }
-
-    }
-);
-
-
-// ============================================
-// NEXT
-// ============================================
-
-nextBtn.addEventListener(
-    "click",
-    () => {
-
-        const position =
-            visibleSongIndexes.indexOf(currentSongIndex);
-
-        if (
-            position !== -1 &&
-            position < visibleSongIndexes.length - 1
-        ) {
-
-            loadSong(
-                visibleSongIndexes[position + 1],
-                true
-            );
-
-        }
-
-    }
-);
-
-
-// ============================================
-// PROGRESS
-// ============================================
-
-progress.addEventListener(
-    "input",
-    () => {
-
-        if (!currentAudio) {
-            return;
-        }
-
-        currentAudio.currentTime =
-            Number(progress.value);
-
-    }
-);
-
-
-// ============================================
-// VOLUME
-// ============================================
-
-volume.addEventListener(
-    "input",
-    () => {
-
-        if (!currentAudio) {
-            return;
-        }
-
-        currentAudio.volume =
-            Number(volume.value);
-
-    }
-);
-
-
-// ============================================
-// PLAYLIST ELEMENTS
-// ============================================
-
-let activePlaylistIndex = -1;
-let selectedPlaylistIndex = -1;
-
-const contentHeading =
-    document.querySelector("#contentHeading");
-
-const songHolder =
-    document.querySelector("#songHolder");
-
-const playlistMenu =
-    document.querySelector(".playlist-menu");
-
-const playlistButton =
-    document.querySelector(".playlist-btn");
-
-const playlistList =
-    document.querySelector(".playlist-list");
-
-const playlistView =
-    document.querySelector(".playlist-view");
-
-const playlistEditor =
-    document.querySelector(".playlist-editor");
-
-const newPlaylistButton =
-    document.querySelector(".new-playlist-btn");
-
-const allSongsButton =
-    document.querySelector(".all-songs-btn");
-
-const backPlaylistButton =
-    document.querySelector(".back-playlist-btn");
-
-const selectedPlaylistName =
-    document.querySelector(".selected-playlist-name");
-
-const addSongInput =
-    document.querySelector(".add-song-input");
-
-const addSongButton =
-    document.querySelector(".add-song-btn");
-
-const playlistSongs =
-    document.querySelector(".playlist-songs");
-
-
-let playlists = [];
-
-
-// ============================================
-// HOME ADD SONG ELEMENTS
-// ============================================
-
-const addHomeSongBtn =
-    document.querySelector("#addHomeSongBtn");
-
-const addSongModal =
-    document.querySelector("#addSongModal");
-
-const closeAddSongBtn =
-    document.querySelector("#closeAddSongBtn");
-
-const addSongForm =
-    document.querySelector("#addSongForm");
-
-const newSongName =
-    document.querySelector("#newSongName");
-
-const newSongFile =
-    document.querySelector("#newSongFile");
-
-const newSongBanner =
-    document.querySelector("#newSongBanner");
-
-
-// ============================================
-// AUTHENTICATION ELEMENTS
-// ============================================
-
-const authButtons =
-    document.querySelector("#authButtons");
-
-const signupOpenBtn =
-    document.querySelector("#signupOpenBtn");
-
-const loginOpenBtn =
-    document.querySelector("#loginOpenBtn");
-
-const signupModal =
-    document.querySelector("#signupModal");
-
-const loginModal =
-    document.querySelector("#loginModal");
-
-const closeSignupBtn =
-    document.querySelector("#closeSignupBtn");
-
-const closeLoginBtn =
-    document.querySelector("#closeLoginBtn");
-
-const signupForm =
-    document.querySelector("#signupForm");
-
-const loginForm =
-    document.querySelector("#loginForm");
-
-const signupName =
-    document.querySelector("#signupName");
-
-const signupEmail =
-    document.querySelector("#signupEmail");
-
-const signupPassword =
-    document.querySelector("#signupPassword");
-
-const signupConfirmPassword =
-    document.querySelector("#signupConfirmPassword");
-
-const loginEmail =
-    document.querySelector("#loginEmail");
-
-const loginPassword =
-    document.querySelector("#loginPassword");
-
-const signupMessage =
-    document.querySelector("#signupMessage");
-
-const loginMessage =
-    document.querySelector("#loginMessage");
-
-const switchToLoginBtn =
-    document.querySelector("#switchToLoginBtn");
-
-const switchToSignupBtn =
-    document.querySelector("#switchToSignupBtn");
-
-
-// ============================================
-// AUTHENTICATION
-// ============================================
+// ========================================================
+// 3. AUTHENTICATION & VIEWS
+// ========================================================
 
 function getUsers() {
-
-    return JSON.parse(
-        localStorage.getItem(USERS_KEY) || "[]"
-    );
-
+    return JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
 }
-
 
 function saveUsers(users) {
-
-    localStorage.setItem(
-        USERS_KEY,
-        JSON.stringify(users)
-    );
-
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
-
 
 async function hashPassword(password) {
-
     if (window.crypto?.subtle) {
-
-        const data =
-            new TextEncoder().encode(password);
-
-        const hashBuffer =
-            await crypto.subtle.digest(
-                "SHA-256",
-                data
-            );
-
-        return Array.from(
-            new Uint8Array(hashBuffer)
-        )
-            .map(byte =>
-                byte.toString(16).padStart(2, "0")
-            )
+        const data = new TextEncoder().encode(password);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        return Array.from(new Uint8Array(hashBuffer))
+            .map(b => b.toString(16).padStart(2, "0"))
             .join("");
     }
-
-    // Fallback for environments without Web Crypto.
     let hash = 0;
-
     for (let i = 0; i < password.length; i++) {
-        hash =
-            ((hash << 5) - hash) +
-            password.charCodeAt(i);
+        hash = (hash << 5) - hash + password.charCodeAt(i);
         hash |= 0;
     }
-
-    return `fallback-${Math.abs(hash)}`;
-
+    return `hash-${Math.abs(hash)}`;
 }
 
-
-function setAuthMessage(element, message, success = false) {
-
+function setAuthMessage(element, message, isSuccess = false) {
     element.textContent = message;
-    element.classList.toggle("success", success);
-
+    element.classList.toggle("success", isSuccess);
 }
 
-
-function openAuthModal(modal) {
-
-    closeAuthModals();
-
-    modal.classList.add("auth-modal-visible");
-    modal.setAttribute("aria-hidden", "false");
-
-}
-
-
-function closeAuthModal(modal) {
-
-    modal.classList.remove("auth-modal-visible");
-    modal.setAttribute("aria-hidden", "true");
-
-}
-
-
-function closeAuthModals() {
-
-    closeAuthModal(signupModal);
-    closeAuthModal(loginModal);
-
-}
-
-
-function requireLogin() {
-
-    if (currentUser) {
-        return true;
-    }
-
-    openAuthModal(loginModal);
-    setAuthMessage(
-        loginMessage,
-        "Log in to use your personal library and playlists."
-    );
-
-    return false;
-
-}
-
-
-function renderAuthButtons() {
-
+function renderAuthHeader() {
     authButtons.innerHTML = "";
 
-    if (!currentUser) {
+    if (currentUser) {
+        const namePill = document.createElement("span");
+        namePill.className = "auth-user-name";
+        namePill.textContent = `👑 ${currentUser.name}`;
 
-        const signupWrap =
-            document.createElement("div");
-        signupWrap.className = "signupbtn";
+        const logoutBtn = document.createElement("button");
+        logoutBtn.className = "logout-btn";
+        logoutBtn.type = "button";
+        logoutBtn.textContent = "Log Out";
+        logoutBtn.addEventListener("click", logoutUser);
 
-        const signupButton =
-            document.createElement("button");
-        signupButton.type = "button";
-        signupButton.textContent = "Sign up";
-        signupButton.addEventListener(
-            "click",
-            () => openAuthModal(signupModal)
-        );
+        authButtons.appendChild(namePill);
+        authButtons.appendChild(logoutBtn);
+    } else {
+        const signupBtn = document.createElement("button");
+        signupBtn.className = "pixel-btn pixel-btn-primary pixel-btn-sm";
+        signupBtn.type = "button";
+        signupBtn.textContent = "Sign Up";
+        signupBtn.addEventListener("click", () => openSignupModal());
 
-        signupWrap.appendChild(signupButton);
+        const loginBtn = document.createElement("button");
+        loginBtn.className = "pixel-btn pixel-btn-ghost pixel-btn-sm";
+        loginBtn.type = "button";
+        loginBtn.textContent = "Log In";
+        loginBtn.addEventListener("click", () => openLoginModal());
 
-        const loginWrap =
-            document.createElement("div");
-        loginWrap.className = "loginbtn";
-
-        const loginButton =
-            document.createElement("button");
-        loginButton.type = "button";
-        loginButton.textContent = "Log in";
-        loginButton.addEventListener(
-            "click",
-            () => openAuthModal(loginModal)
-        );
-
-        loginWrap.appendChild(loginButton);
-
-        authButtons.appendChild(signupWrap);
-        authButtons.appendChild(loginWrap);
-
-        return;
+        authButtons.appendChild(signupBtn);
+        authButtons.appendChild(loginBtn);
     }
-
-    const userName =
-        document.createElement("span");
-    userName.className = "auth-user-name";
-    userName.textContent = `Hi, ${currentUser.name}`;
-    userName.title = currentUser.name;
-
-    const logoutButton =
-        document.createElement("button");
-    logoutButton.className = "logout-btn";
-    logoutButton.type = "button";
-    logoutButton.textContent = "Log out";
-
-    logoutButton.addEventListener(
-        "click",
-        logoutUser
-    );
-
-    authButtons.appendChild(userName);
-    authButtons.appendChild(logoutButton);
-
 }
 
-
-function migrateLegacyLocalData(userId) {
-
-    if (localStorage.getItem(LEGACY_MIGRATED_KEY)) {
-        return;
-    }
-
-    const oldPlaylists =
-        JSON.parse(
-            localStorage.getItem(PLAYLISTS_KEY) || "[]"
-        );
-
-    const oldDeletedSongs =
-        JSON.parse(
-            localStorage.getItem(DELETED_SONGS_KEY) || "[]"
-        );
-
-    const userPlaylistKey =
-        `${PLAYLISTS_KEY}_${userId}`;
-
-    const userDeletedKey =
-        `${DELETED_SONGS_KEY}_${userId}`;
-
-    if (!localStorage.getItem(userPlaylistKey)) {
-        localStorage.setItem(
-            userPlaylistKey,
-            JSON.stringify(oldPlaylists)
-        );
-    }
-
-    if (!localStorage.getItem(userDeletedKey)) {
-        localStorage.setItem(
-            userDeletedKey,
-            JSON.stringify(oldDeletedSongs)
-        );
-    }
-
-    localStorage.setItem(
-        LEGACY_MIGRATED_KEY,
-        "true"
-    );
-
+function showLandingScreen() {
+    landingScreen.style.display = "flex";
+    appContainer.style.display = "none";
 }
 
+function showAppScreen() {
+    landingScreen.style.display = "none";
+    appContainer.style.display = "flex";
+    renderAuthHeader();
+    loadLikedSongs();
+    refreshSongList();
+}
 
 async function loginUser(email, password) {
-
     const users = getUsers();
-    const normalizedEmail = email.trim().toLowerCase();
-    const passwordHash = await hashPassword(password);
+    const cleanEmail = email.trim().toLowerCase();
+    const hashed = await hashPassword(password);
 
-    const user = users.find(
-        savedUser =>
-            savedUser.email === normalizedEmail &&
-            savedUser.passwordHash === passwordHash
-    );
-
+    const user = users.find(u => u.email === cleanEmail && u.passwordHash === hashed);
     if (!user) {
-        throw new Error("Incorrect email or password.");
+        throw new Error("Invalid email or password.");
     }
 
-    currentUser = {
-        id: user.id,
-        name: user.name,
-        email: user.email
-    };
+    currentUser = { id: user.id, name: user.name, email: user.email, theme: user.theme || "castle" };
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
+    applyTheme(currentUser.theme || "castle");
 
-    localStorage.setItem(
-        CURRENT_USER_KEY,
-        JSON.stringify(currentUser)
-    );
-
-    loadUserData();
-    await refreshSongs();
-    renderPlaylists();
-    showAllSongs();
-    renderAuthButtons();
-
+    closeLoginModal();
+    showAppScreen();
 }
 
-
-async function logoutUser() {
-
-    if (currentAudio) {
-        currentAudio.pause();
-        currentAudio = null;
-    }
-
-    currentSongIndex = -1;
-    currentSongId = null;
-    player.classList.remove("active");
-    mainPlayBtn.textContent = "▶";
-
-    closeAuthModals();
-
-    currentUser = null;
-    localStorage.removeItem(CURRENT_USER_KEY);
-
-    loadUserData();
-    await refreshSongs();
-    renderPlaylists();
-    showAllSongs();
-    renderAuthButtons();
-
-}
-
-
-async function createAccount() {
-
-    const name = signupName.value.trim();
-    const email = signupEmail.value.trim().toLowerCase();
-    const password = signupPassword.value;
-    const confirmPassword = signupConfirmPassword.value;
-
-    if (!name || !email || !password || !confirmPassword) {
-        setAuthMessage(
-            signupMessage,
-            "Please fill in all fields."
-        );
-        return;
-    }
-
-    if (password.length < 6) {
-        setAuthMessage(
-            signupMessage,
-            "Password must be at least 6 characters."
-        );
-        return;
-    }
-
-    if (password !== confirmPassword) {
-        setAuthMessage(
-            signupMessage,
-            "Passwords do not match."
-        );
-        return;
-    }
-
+async function createAccount(name, email, password) {
     const users = getUsers();
+    const cleanEmail = email.trim().toLowerCase();
 
-    if (users.some(user => user.email === email)) {
-        setAuthMessage(
-            signupMessage,
-            "An account with this email already exists."
-        );
-        return;
+    if (users.some(u => u.email === cleanEmail)) {
+        throw new Error("An account with this email already exists.");
     }
 
-    const id =
-        `user-${Date.now()}-${Math.random()
-            .toString(36)
-            .slice(2)}`;
+    const id = `user-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const passwordHash = await hashPassword(password);
+    const newUser = { id, name: name.trim(), email: cleanEmail, passwordHash, theme: currentTheme };
 
-    const passwordHash =
-        await hashPassword(password);
-
-    users.push({
-        id,
-        name,
-        email,
-        passwordHash
-    });
-
+    users.push(newUser);
     saveUsers(users);
 
-    // Preserve any data created before authentication was added
-    // for the first account only.
-    if (users.length === 1) {
-        migrateLegacyLocalData(id);
-    }
+    currentUser = { id, name: newUser.name, email: cleanEmail, theme: currentTheme };
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
 
-    currentUser = { id, name, email };
+    closeSignupModal();
+    showAppScreen();
 
-    localStorage.setItem(
-        CURRENT_USER_KEY,
-        JSON.stringify(currentUser)
-    );
+    // REQUIREMENT: Immediately give 3 UI options after user signs up successfully!
+    openThemePicker();
+}
 
-    loadUserData();
+function logoutUser() {
+    pauseAudio();
+    currentUser = null;
+    localStorage.removeItem(CURRENT_USER_KEY);
+    isGuestMode = false;
+    currentSongIndex = -1;
+    showLandingScreen();
+}
 
-    if (users.length === 1) {
-        try {
-            await claimLegacyCustomSongs(id);
-        } catch (error) {
-            console.error("Could not migrate older custom songs:", error);
-        }
-    }
-
-    await refreshSongs();
-    renderPlaylists();
-    showAllSongs();
-    renderAuthButtons();
-
+// Modal open/close helpers
+function openSignupModal() {
     signupForm.reset();
-    closeAuthModal(signupModal);
-
+    setAuthMessage(signupMessage, "");
+    signupModal.style.display = "flex";
+    signupModal.setAttribute("aria-hidden", "false");
+}
+function closeSignupModal() {
+    signupModal.style.display = "none";
+    signupModal.setAttribute("aria-hidden", "true");
 }
 
-
-// ============================================
-// AUTH EVENT LISTENERS
-// ============================================
-
-signupOpenBtn.addEventListener(
-    "click",
-    () => openAuthModal(signupModal)
-);
-
-loginOpenBtn.addEventListener(
-    "click",
-    () => openAuthModal(loginModal)
-);
-
-closeSignupBtn.addEventListener(
-    "click",
-    () => closeAuthModal(signupModal)
-);
-
-closeLoginBtn.addEventListener(
-    "click",
-    () => closeAuthModal(loginModal)
-);
-
-switchToLoginBtn.addEventListener(
-    "click",
-    () => {
-        signupForm.reset();
-        setAuthMessage(signupMessage, "");
-        openAuthModal(loginModal);
-    }
-);
-
-switchToSignupBtn.addEventListener(
-    "click",
-    () => {
-        loginForm.reset();
-        setAuthMessage(loginMessage, "");
-        openAuthModal(signupModal);
-    }
-);
-
-signupModal.addEventListener(
-    "click",
-    event => {
-        if (event.target === signupModal) {
-            closeAuthModal(signupModal);
-        }
-    }
-);
-
-loginModal.addEventListener(
-    "click",
-    event => {
-        if (event.target === loginModal) {
-            closeAuthModal(loginModal);
-        }
-    }
-);
-
-signupForm.addEventListener(
-    "submit",
-    async event => {
-        event.preventDefault();
-
-        try {
-            await createAccount();
-        } catch (error) {
-            console.error(error);
-            setAuthMessage(
-                signupMessage,
-                "Could not create the account. Please try again."
-            );
-        }
-    }
-);
-
-loginForm.addEventListener(
-    "submit",
-    async event => {
-        event.preventDefault();
-
-        try {
-            await loginUser(
-                loginEmail.value,
-                loginPassword.value
-            );
-
-            loginForm.reset();
-            setAuthMessage(loginMessage, "");
-            closeAuthModal(loginModal);
-
-        } catch (error) {
-            setAuthMessage(
-                loginMessage,
-                error.message || "Could not log in."
-            );
-        }
-    }
-);
-
-document.addEventListener(
-    "keydown",
-    event => {
-        if (event.key !== "Escape") {
-            return;
-        }
-
-        closeAuthModals();
-    }
-);
-
-
-// ============================================
-// SAVE PLAYLISTS
-// ============================================
-
-function getUserStorageKey(baseKey) {
-
-    return currentUser
-        ? `${baseKey}_${currentUser.id}`
-        : null;
-
+function openLoginModal() {
+    loginForm.reset();
+    setAuthMessage(loginMessage, "");
+    loginModal.style.display = "flex";
+    loginModal.setAttribute("aria-hidden", "false");
 }
-
-
-function savePlaylists() {
-
-    const key = getUserStorageKey(PLAYLISTS_KEY);
-
-    if (!key) {
-        return;
-    }
-
-    localStorage.setItem(
-        key,
-        JSON.stringify(playlists)
-    );
-
+function closeLoginModal() {
+    loginModal.style.display = "none";
+    loginModal.setAttribute("aria-hidden", "true");
 }
-
-
-function saveDeletedSongIds() {
-
-    const key = getUserStorageKey(DELETED_SONGS_KEY);
-
-    if (!key) {
-        return;
-    }
-
-    localStorage.setItem(
-        key,
-        JSON.stringify([...deletedSongIds])
-    );
-
-}
-
-
-function loadUserData() {
-
-    if (!currentUser) {
-        playlists = [];
-        deletedSongIds = new Set();
-        return;
-    }
-
-    const playlistKey =
-        getUserStorageKey(PLAYLISTS_KEY);
-
-    const deletedKey =
-        getUserStorageKey(DELETED_SONGS_KEY);
-
-    playlists = JSON.parse(
-        localStorage.getItem(playlistKey) || "[]"
-    );
-
-    deletedSongIds = new Set(
-        JSON.parse(
-            localStorage.getItem(deletedKey) || "[]"
-        )
-    );
-
-}
-
-
-
-// ============================================
-// RENDER LIBRARY
-// ============================================
-
-function renderLibrary() {
-
-    const list =
-        document.querySelector(".list");
-
-    list.innerHTML = "";
-
-    songs.forEach((song, index) => {
-
-        const songItem =
-            document.createElement("div");
-
-        songItem.className = "song";
-
-        songItem.dataset.songIndex = index;
-
-        const songName =
-            document.createElement("span");
-
-        songName.className = "library-song-name";
-        songName.textContent = song.title;
-
-        songItem.appendChild(songName);
-
-        const deleteButton =
-            document.createElement("button");
-
-        deleteButton.className = "library-delete-btn";
-        deleteButton.type = "button";
-        deleteButton.textContent = "×";
-        deleteButton.title = "Delete song";
-
-        deleteButton.addEventListener(
-            "click",
-            event => {
-                event.stopPropagation();
-                deleteSongCompletely(song.id);
-            }
-        );
-
-        songItem.appendChild(deleteButton);
-
-        songItem.addEventListener(
-            "click",
-            () => {
-                loadSong(index, true);
-            }
-        );
-
-        list.appendChild(songItem);
-
-    });
-
-}
-
-
-// ============================================
-// CLEAN PLAYLISTS AFTER SONG DELETE
-// ============================================
-
-function removeSongFromAllPlaylists(songTitle) {
-
-    const normalizedTitle =
-        songTitle.toLowerCase();
-
-    let changed = false;
-
-    playlists.forEach(playlist => {
-
-        const oldLength = playlist.songs.length;
-
-        playlist.songs = playlist.songs.filter(
-            song =>
-                song.toLowerCase() !== normalizedTitle
-        );
-
-        if (playlist.songs.length !== oldLength) {
-            changed = true;
-        }
-
-    });
-
-    if (changed) {
-        savePlaylists();
-    }
-
-}
-
-
-// ============================================
-// DELETE SONG FROM ALL SONGS
-// ============================================
-
-async function deleteSongCompletely(songId) {
-
-    if (!requireLogin()) {
-        return;
-    }
-
-    const songIndex =
-        songs.findIndex(song => song.id === songId);
-
-    if (songIndex === -1) {
-        return;
-    }
-
-    const song = songs[songIndex];
-
-    const confirmed =
-        confirm(
-            `Delete "${song.title}" from all songs?`
-        );
-
-    if (!confirmed) {
-        return;
-    }
-
-    removeSongFromAllPlaylists(song.title);
-
-    if (song.custom) {
-
-        try {
-            await deleteCustomSongFromDatabase(song.id);
-        } catch (error) {
-            console.error("Could not delete custom song:", error);
-            alert("The song could not be deleted.");
-            return;
-        }
-
-        const audioUrlKey = `${song.id}-audio`;
-        const posterUrlKey = `${song.id}-poster`;
-
-        const audioUrl = objectUrls.get(audioUrlKey);
-        const posterUrl = objectUrls.get(posterUrlKey);
-
-        if (audioUrl) {
-            URL.revokeObjectURL(audioUrl);
-            objectUrls.delete(audioUrlKey);
-        }
-
-        if (posterUrl) {
-            URL.revokeObjectURL(posterUrl);
-            objectUrls.delete(posterUrlKey);
-        }
-
-    } else {
-
-        deletedSongIds.add(song.id);
-        saveDeletedSongIds();
-
-    }
-
-    if (currentSongId === song.id) {
-
-        if (currentAudio) {
-            currentAudio.pause();
-            currentAudio = null;
-        }
-
-        currentSongIndex = -1;
-        currentSongId = null;
-        player.classList.remove("active");
-        mainPlayBtn.textContent = "▶";
-
-    }
-
-    await refreshSongs();
-
-    if (currentSongId) {
-        currentSongIndex = songs.findIndex(
-            currentSong => currentSong.id === currentSongId
-        );
-    }
-
-    if (activePlaylistIndex !== -1) {
-
-        if (
-            activePlaylistIndex >= playlists.length
-        ) {
-            showAllSongs();
-        } else {
-            showPlaylist(activePlaylistIndex);
-        }
-
-    } else {
-        showAllSongs();
-    }
-
-}
-
-
-// ============================================
-// REFRESH SONG DATA
-// ============================================
-
-async function refreshSongs() {
-
-    const visibleBuiltInSongs =
-        originalCards
-            .map((card, index) => {
-
-                const audio = card.querySelector("audio");
-
-                return {
-                    id: `builtin-${index + 1}`,
-                    title: `Song ${index + 1}`,
-                    src: audio.src,
-                    poster: card.querySelector("img").src,
-                    custom: false
-                };
-
-            })
-            .filter(song => !deletedSongIds.has(song.id));
-
-    let customSongs = [];
-
-    try {
-        customSongs = await getCustomSongsFromDatabase();
-    } catch (error) {
-        console.error("Could not load custom songs:", error);
-    }
-
-    customSongs = customSongs.map(song => {
-
-        const audioUrlKey = `${song.id}-audio`;
-        const posterUrlKey = `${song.id}-poster`;
-
-        const existingAudioUrl =
-            objectUrls.get(audioUrlKey);
-
-        const audioUrl =
-            existingAudioUrl ||
-            URL.createObjectURL(song.audioBlob);
-
-        if (!existingAudioUrl) {
-            objectUrls.set(audioUrlKey, audioUrl);
-        }
-
-        const existingPosterUrl =
-            objectUrls.get(posterUrlKey);
-
-        const posterUrl =
-            song.posterBlob
-                ? (
-                    existingPosterUrl ||
-                    URL.createObjectURL(song.posterBlob)
-                )
-                : "";
-
-        if (song.posterBlob && !existingPosterUrl) {
-            objectUrls.set(posterUrlKey, posterUrl);
-        }
-
-        return {
-            id: song.id,
-            title: song.title,
-            src: audioUrl,
-            poster: posterUrl,
-            custom: true
-        };
-
-    });
-
-    songs = [
-        ...visibleBuiltInSongs,
-        ...customSongs
-    ];
-
-    visibleSongIndexes = getAllSongIndexes();
-
-    renderLibrary();
-
-}
-
-
-// ============================================
-// RENDER SONG CARDS
-// ============================================
-
-function renderSongCards(songIndexes) {
-
-    visibleSongIndexes = [...songIndexes];
-
-    songHolder.innerHTML = "";
-
-    songIndexes.forEach(songIndex => {
-
-        const song = songs[songIndex];
-
-        if (!song) {
-            return;
-        }
-
-        const card =
-            document.createElement("div");
-
-        card.className = "card";
-        card.dataset.songIndex = songIndex;
-
-        const poster =
-            document.createElement("img");
-
-        poster.src = song.poster;
-        poster.alt = song.title;
-
-        const play =
-            document.createElement("div");
-
-        play.className = "play";
-
-        const audio =
-            document.createElement("audio");
-
-        audio.src = song.src;
-        audio.preload = "metadata";
-
-        const playIcon =
-            document.createElement("img");
-
-        playIcon.src = "play.svg";
-        playIcon.alt = "Play";
-
-        play.appendChild(audio);
-        play.appendChild(playIcon);
-
-        card.appendChild(poster);
-        card.appendChild(play);
-
-        // ========================================
-        // DELETE BUTTON
-        // ========================================
-
-        const deleteButton =
-            document.createElement("button");
-
-        deleteButton.className =
-            activePlaylistIndex === -1
-                ? "playlist-card-delete global-delete"
-                : "playlist-card-delete";
-
-        deleteButton.type = "button";
-        deleteButton.textContent = "×";
-        deleteButton.title =
-            activePlaylistIndex === -1
-                ? "Delete song"
-                : "Remove from playlist";
-
-        deleteButton.addEventListener(
-            "click",
-            event => {
-
-                event.stopPropagation();
-
-                if (activePlaylistIndex === -1) {
-
-                    deleteSongCompletely(song.id);
-
-                } else {
-
-                    deleteSongFromCurrentPlaylist(
-                        song.title
-                    );
-
-                }
-
-            }
-        );
-
-        card.appendChild(deleteButton);
-
-        const title =
-            document.createElement("div");
-
-        title.className = "card-title";
-        title.textContent = song.title;
-
-        card.appendChild(title);
-
-        play.addEventListener(
-            "click",
-            event => {
-
-                event.stopPropagation();
-                loadSong(songIndex, true);
-
-            }
-        );
-
-        card.addEventListener(
-            "click",
-            () => {
-                loadSong(songIndex, true);
-            }
-        );
-
-        songHolder.appendChild(card);
-
-    });
-
-    // ============================================
-    // ADD SONG CARD FOR PLAYLISTS
-    // ============================================
-
-    if (activePlaylistIndex !== -1) {
-
-        const addCard =
-            document.createElement("div");
-
-        addCard.className = "add-song-card";
-
-        addCard.innerHTML = `
-            <div class="add-song-plus">+</div>
-            <div class="add-song-text">Add Song</div>
-        `;
-
-        addCard.addEventListener(
-            "click",
-            () => {
-
-                const songName =
-                    prompt(
-                        "Enter song name (for example: Song 6):"
-                    );
-
-                if (songName === null) {
-                    return;
-                }
-
-                const cleanedName =
-                    songName.trim();
-
-                if (cleanedName === "") {
-                    return;
-                }
-
-                const matchingSong =
-                    songs.find(
-                        song =>
-                            song.title.toLowerCase() ===
-                            cleanedName.toLowerCase()
-                    );
-
-                if (!matchingSong) {
-                    alert(
-                        "Song not found. Use an existing song name."
-                    );
-                    return;
-                }
-
-                const playlist =
-                    playlists[activePlaylistIndex];
-
-                const alreadyAdded =
-                    playlist.songs.some(
-                        song =>
-                            song.toLowerCase() ===
-                            matchingSong.title.toLowerCase()
-                    );
-
-                if (alreadyAdded) {
-                    alert(
-                        "This song is already in the playlist."
-                    );
-                    return;
-                }
-
-                playlist.songs.push(
-                    matchingSong.title
-                );
-
-                savePlaylists();
-                renderPlaylists();
-                showPlaylist(activePlaylistIndex);
-
-            }
-        );
-
-        songHolder.appendChild(addCard);
-
-    }
-
-}
-
-
-// ============================================
-// GET ALL SONG INDEXES
-// ============================================
-
-function getAllSongIndexes() {
-
-    return songs.map(
-        (_, index) => index
-    );
-
-}
-
-
-// ============================================
-// SHOW ALL SONGS
-// ============================================
-
-function showAllSongs() {
-
-    activePlaylistIndex = -1;
-    selectedPlaylistIndex = -1;
-
-    contentHeading.textContent =
-        "Trending songs";
-
-    playlistButton.textContent =
-        "My Playlists";
-
-    renderSongCards(
-        getAllSongIndexes()
-    );
-
-    searchInput.value = "";
-
-    playlistView.classList.remove(
-        "playlist-view-hidden"
-    );
-
-    playlistEditor.classList.remove(
-        "playlist-editor-visible"
-    );
-
-    addHomeSongBtn.style.display = "inline-flex";
-
-    playlistMenu.classList.remove(
-        "playlist-open"
-    );
-
-}
-
-
-// ============================================
-// SHOW PLAYLIST
-// ============================================
-
-function showPlaylist(index) {
-
-    if (
-        index < 0 ||
-        index >= playlists.length
-    ) {
-        return;
-    }
-
-    activePlaylistIndex = index;
-
-    const playlist =
-        playlists[index];
-
-    contentHeading.textContent =
-        playlist.name;
-
-    playlistButton.textContent =
-        playlist.name;
-
-    const playlistSongIndexes =
-        playlist.songs
-            .map(songName => {
-
-                return songs.findIndex(
-                    song =>
-                        song.title.toLowerCase() ===
-                        songName.toLowerCase()
-                );
-
-            })
-            .filter(index => index !== -1);
-
-    renderSongCards(
-        playlistSongIndexes
-    );
-
-    searchInput.value = "";
-
-    addHomeSongBtn.style.display = "none";
-
-}
-
-
-// ============================================
-// RENDER PLAYLISTS
-// ============================================
-
-function renderPlaylists() {
-
-    playlistList.innerHTML = "";
-
-    if (playlists.length === 0) {
-
-        const empty =
-            document.createElement("div");
-
-        empty.className = "empty-playlists";
-        empty.textContent = "No playlists yet";
-
-        playlistList.appendChild(empty);
-
-        return;
-
-    }
-
-    playlists.forEach(
-        (playlist, index) => {
-
-            const playlistItem =
-                document.createElement("div");
-
-            playlistItem.className =
-                "playlist-item";
-
-            const playlistIcon =
-                document.createElement("span");
-
-            playlistIcon.className =
-                "playlist-icon";
-
-            playlistIcon.textContent = "♫";
-
-            const playlistText =
-                document.createElement("span");
-
-            playlistText.className =
-                "playlist-item-name";
-
-            playlistText.textContent =
-                playlist.name;
-
-            const playlistCount =
-                document.createElement("span");
-
-            playlistCount.className =
-                "playlist-count";
-
-            playlistCount.textContent =
-                playlist.songs.length;
-
-            playlistItem.appendChild(playlistIcon);
-            playlistItem.appendChild(playlistText);
-            playlistItem.appendChild(playlistCount);
-
-            playlistItem.addEventListener(
-                "click",
-                event => {
-
-                    event.stopPropagation();
-                    openPlaylistEditor(index);
-
-                }
-            );
-
-            playlistList.appendChild(
-                playlistItem
-            );
-
-        }
-    );
-
-}
-
-
-// ============================================
-// OPEN PLAYLIST EDITOR
-// ============================================
-
-function openPlaylistEditor(index) {
-
-    if (
-        index < 0 ||
-        index >= playlists.length
-    ) {
-        return;
-    }
-
-    activePlaylistIndex = index;
-    selectedPlaylistIndex = index;
-
-    showPlaylist(index);
-
-    playlistView.classList.add(
-        "playlist-view-hidden"
-    );
-
-    playlistEditor.classList.add(
-        "playlist-editor-visible"
-    );
-
-    selectedPlaylistName.textContent =
-        playlists[index].name;
-
-    renderPlaylistSongs();
-
-}
-
-
-// ============================================
-// BACK BUTTON
-// ============================================
-
-backPlaylistButton.addEventListener(
-    "click",
-    event => {
-
-        event.stopPropagation();
-
-        playlistEditor.classList.remove(
-            "playlist-editor-visible"
-        );
-
-        playlistView.classList.remove(
-            "playlist-view-hidden"
-        );
-
-        selectedPlaylistIndex = -1;
-
-    }
-);
-
-
-// ============================================
-// RENDER PLAYLIST SONGS
-// ============================================
-
-function renderPlaylistSongs() {
-
-    playlistSongs.innerHTML = "";
-
-    if (selectedPlaylistIndex === -1) {
-        return;
-    }
-
-    const playlist =
-        playlists[selectedPlaylistIndex];
-
-    if (!playlist || playlist.songs.length === 0) {
-
-        const empty =
-            document.createElement("div");
-
-        empty.className =
-            "empty-playlist-songs";
-
-        empty.textContent =
-            "No songs added yet";
-
-        playlistSongs.appendChild(empty);
-
-        return;
-
-    }
-
-    playlist.songs.forEach(
-        (songName, songIndex) => {
-
-            const songItem =
-                document.createElement("div");
-
-            songItem.className =
-                "playlist-song-item";
-
-            const songNameElement =
-                document.createElement("span");
-
-            songNameElement.className =
-                "playlist-song-name";
-
-            songNameElement.textContent =
-                songName;
-
-            const deleteButton =
-                document.createElement("button");
-
-            deleteButton.className =
-                "delete-song-btn";
-
-            deleteButton.type = "button";
-            deleteButton.textContent = "Delete";
-
-            deleteButton.addEventListener(
-                "click",
-                event => {
-
-                    event.stopPropagation();
-
-                    deleteSongFromPlaylist(
-                        songIndex
-                    );
-
-                }
-            );
-
-            songItem.appendChild(
-                songNameElement
-            );
-
-            songItem.appendChild(
-                deleteButton
-            );
-
-            playlistSongs.appendChild(
-                songItem
-            );
-
-        }
-    );
-
-}
-
-
-// ============================================
-// ADD SONG TO PLAYLIST
-// ============================================
-
-function addSongToPlaylist() {
-
-    if (selectedPlaylistIndex === -1) {
-        return;
-    }
-
-    const enteredName =
-        addSongInput.value.trim();
-
-    if (enteredName === "") {
-        addSongInput.focus();
-        return;
-    }
-
-    const matchingSong =
-        songs.find(
-            song =>
-                song.title.toLowerCase() ===
-                enteredName.toLowerCase()
-        );
-
-    if (!matchingSong) {
-
-        alert(
-            "Song not found. Use an existing song name."
-        );
-
-        return;
-
-    }
-
-    const playlist =
-        playlists[selectedPlaylistIndex];
-
-    const alreadyAdded =
-        playlist.songs.some(
-            song =>
-                song.toLowerCase() ===
-                matchingSong.title.toLowerCase()
-        );
-
-    if (alreadyAdded) {
-
-        alert(
-            "This song is already in the playlist."
-        );
-
-        return;
-
-    }
-
-    playlist.songs.push(
-        matchingSong.title
-    );
-
-    savePlaylists();
-
-    addSongInput.value = "";
-
-    renderPlaylistSongs();
-    renderPlaylists();
-
-    showPlaylist(selectedPlaylistIndex);
-
-}
-
-
-addSongButton.addEventListener(
-    "click",
-    event => {
-
-        event.stopPropagation();
-        addSongToPlaylist();
-
-    }
-);
-
-
-addSongInput.addEventListener(
-    "keydown",
-    event => {
-
-        if (event.key === "Enter") {
-
-            event.preventDefault();
-            addSongToPlaylist();
-
-        }
-
-    }
-);
-
-
-// ============================================
-// DELETE SONG FROM PLAYLIST
-// ============================================
-
-function deleteSongFromPlaylist(songIndex) {
-
-    if (selectedPlaylistIndex === -1) {
-        return;
-    }
-
-    const playlist =
-        playlists[selectedPlaylistIndex];
-
-    if (!playlist) {
-        return;
-    }
-
-    playlist.songs.splice(
-        songIndex,
-        1
-    );
-
-    savePlaylists();
-
-    renderPlaylistSongs();
-    renderPlaylists();
-
-    if (
-        activePlaylistIndex ===
-        selectedPlaylistIndex
-    ) {
-
-        showPlaylist(
-            selectedPlaylistIndex
-        );
-
-    }
-
-}
-
-
-// ============================================
-// DELETE SONG FROM CURRENT PLAYLIST CARD
-// ============================================
-
-function deleteSongFromCurrentPlaylist(songName) {
-
-    if (activePlaylistIndex === -1) {
-        return;
-    }
-
-    const playlist =
-        playlists[activePlaylistIndex];
-
-    if (!playlist) {
-        return;
-    }
-
-    const songIndex =
-        playlist.songs.findIndex(
-            song =>
-                song.toLowerCase() ===
-                songName.toLowerCase()
-        );
-
-    if (songIndex === -1) {
-        return;
-    }
-
-    const confirmed =
-        confirm(
-            `Remove "${songName}" from ${playlist.name}?`
-        );
-
-    if (!confirmed) {
-        return;
-    }
-
-    playlist.songs.splice(
-        songIndex,
-        1
-    );
-
-    savePlaylists();
-    renderPlaylists();
-    renderPlaylistSongs();
-
-    showPlaylist(
-        activePlaylistIndex
-    );
-
-}
-
-
-// ============================================
-// CREATE NEW PLAYLIST
-// ============================================
-
-newPlaylistButton.addEventListener(
-    "click",
-    event => {
-
-        event.stopPropagation();
-
-        const playlistName =
-            prompt(
-                "Enter your playlist name:"
-            );
-
-        if (playlistName === null) {
-            return;
-        }
-
-        const cleanedName =
-            playlistName.trim();
-
-        if (cleanedName === "") {
-
-            alert(
-                "Please enter a playlist name."
-            );
-
-            return;
-
-        }
-
-        const alreadyExists =
-            playlists.some(
-                playlist =>
-                    playlist.name.toLowerCase() ===
-                    cleanedName.toLowerCase()
-            );
-
-        if (alreadyExists) {
-
-            alert(
-                "A playlist with this name already exists."
-            );
-
-            return;
-
-        }
-
-        playlists.push({
-            name: cleanedName,
-            songs: []
-        });
-
-        savePlaylists();
-        renderPlaylists();
-
-        openPlaylistEditor(
-            playlists.length - 1
-        );
-
-    }
-);
-
-
-// ============================================
-// ALL SONGS BUTTON
-// ============================================
-
-allSongsButton.addEventListener(
-    "click",
-    event => {
-
-        event.stopPropagation();
-        showAllSongs();
-
-    }
-);
-
-
-// ============================================
-// PLAYLIST BUTTON
-// ============================================
-
-playlistButton.addEventListener(
-    "click",
-    event => {
-
-        event.stopPropagation();
-
-        if (!requireLogin()) {
-            return;
-        }
-
-        playlistMenu.classList.toggle(
-            "playlist-open"
-        );
-
-    }
-);
-
-
-// ============================================
-// CLOSE PLAYLIST DROPDOWN
-// ============================================
-
-document.addEventListener(
-    "click",
-    event => {
-
-        if (!playlistMenu.contains(event.target)) {
-
-            playlistMenu.classList.remove(
-                "playlist-open"
-            );
-
-        }
-
-    }
-);
-
-
-// ============================================
-// SEARCH
-// ============================================
-
-const searchInput =
-    document.querySelector("#searchInput");
-
-searchInput.addEventListener(
-    "input",
-    () => {
-
-        const searchValue =
-            searchInput.value
-                .trim()
-                .toLowerCase();
-
-        const visibleCards =
-            Array.from(
-                document.querySelectorAll(
-                    "#songHolder .card"
-                )
-            );
-
-        visibleCards.forEach(card => {
-
-            card.classList.remove(
-                "search-highlight"
-            );
-
-        });
-
-        if (searchValue === "") {
-            return;
-        }
-
-        const foundCard =
-            visibleCards.find(card => {
-
-                const songName =
-                    card
-                        .querySelector(".card-title")
-                        ?.textContent
-                        .trim()
-                        .toLowerCase() || "";
-
-                return songName.includes(
-                    searchValue
-                );
-
-            });
-
-        if (foundCard) {
-
-            foundCard.scrollIntoView({
-                behavior: "smooth",
-                block: "center",
-                inline: "nearest"
-            });
-
-            foundCard.classList.add(
-                "search-highlight"
-            );
-
-            setTimeout(
-                () => {
-                    foundCard.classList.remove(
-                        "search-highlight"
-                    );
-                },
-                1200
-            );
-
-        }
-
-    }
-);
-
-
-// ============================================
-// UPDATE PLAY ICONS
-// ============================================
-
-setInterval(
-    () => {
-
-        document
-            .querySelectorAll(
-                "#songHolder .card"
-            )
-            .forEach(card => {
-
-                const index =
-                    Number(
-                        card.dataset.songIndex
-                    );
-
-                const icon =
-                    card.querySelector(
-                        ".play img"
-                    );
-
-                if (!icon) {
-                    return;
-                }
-
-                if (
-                    currentSongIndex === index &&
-                    currentAudio &&
-                    !currentAudio.paused
-                ) {
-
-                    icon.src = "pause.svg";
-
-                } else {
-
-                    icon.src = "play.svg";
-
-                }
-
-            });
-
-    },
-    200
-);
-
-
-// ============================================
-// ADD SONG MODAL
-// ============================================
 
 function openAddSongModal() {
-
-    addSongModal.classList.add(
-        "add-song-modal-visible"
-    );
-
-    addSongModal.setAttribute(
-        "aria-hidden",
-        "false"
-    );
-
-    setTimeout(() => {
-        newSongName.focus();
-    }, 0);
-
-}
-
-
-function closeAddSongModal() {
-
-    addSongModal.classList.remove(
-        "add-song-modal-visible"
-    );
-
-    addSongModal.setAttribute(
-        "aria-hidden",
-        "true"
-    );
-
     addSongForm.reset();
-
+    audioDropLabel.textContent = "Choose audio file or drop here";
+    bannerDropLabel.textContent = "Optional custom banner image";
+    coverPresetOptions.forEach(opt => {
+        opt.classList.toggle("selected", opt.querySelector("input").value === currentTheme);
+        opt.querySelector("input").checked = (opt.querySelector("input").value === currentTheme);
+    });
+    addSongModal.style.display = "flex";
+    addSongModal.setAttribute("aria-hidden", "false");
+}
+function closeAddSongModal() {
+    addSongModal.style.display = "none";
+    addSongModal.setAttribute("aria-hidden", "true");
 }
 
 
-addHomeSongBtn.addEventListener(
-    "click",
-    event => {
+// ========================================================
+// 4. LIKED SONGS & PLAYLIST HELPERS
+// ========================================================
 
-        event.stopPropagation();
+function getLikedStorageKey() {
+    const id = currentUser ? currentUser.id : "guest";
+    return `pixelTunesLiked_${id}`;
+}
 
-        if (!requireLogin()) {
-            return;
-        }
+function loadLikedSongs() {
+    const raw = localStorage.getItem(getLikedStorageKey());
+    likedSongIds = new Set(JSON.parse(raw || "[]"));
+    likedCount.textContent = likedSongIds.size;
+}
 
-        openAddSongModal();
-
+function toggleLikeCurrentSong() {
+    if (currentSongIndex < 0 || currentSongIndex >= songs.length) return;
+    const song = songs[currentSongIndex];
+    if (likedSongIds.has(song.id)) {
+        likedSongIds.delete(song.id);
+    } else {
+        likedSongIds.add(song.id);
     }
-);
+    localStorage.setItem(getLikedStorageKey(), JSON.stringify([...likedSongIds]));
+    likedCount.textContent = likedSongIds.size;
+    updateLikeButtonUI();
+}
 
-
-closeAddSongBtn.addEventListener(
-    "click",
-    event => {
-
-        event.stopPropagation();
-        closeAddSongModal();
-
+function updateLikeButtonUI() {
+    if (currentSongIndex < 0 || currentSongIndex >= songs.length) {
+        stageLikeBtn.classList.remove("liked");
+        stageLikeIcon.textContent = "🤍";
+        bottomLikeBtn.classList.remove("liked");
+        bottomLikeIcon.textContent = "🤍";
+        return;
     }
-);
+    const song = songs[currentSongIndex];
+    const isLiked = likedSongIds.has(song.id);
+    stageLikeBtn.classList.toggle("liked", isLiked);
+    stageLikeIcon.textContent = isLiked ? "💜" : "🤍";
+    bottomLikeBtn.classList.toggle("liked", isLiked);
+    bottomLikeIcon.textContent = isLiked ? "💜" : "🤍";
+}
 
 
-addSongModal.addEventListener(
-    "click",
-    event => {
+// ========================================================
+// 5. SONG REFRESH & QUEUE RENDERING
+// ========================================================
 
-        if (event.target === addSongModal) {
-            closeAddSongModal();
-        }
+async function refreshSongList() {
+    try {
+        const rawSongs = await getSongsFromDatabase();
 
-    }
-);
+        songs = rawSongs.map(song => {
+            // Manage audio blob object URL
+            let audioUrl = objectUrlCache.get(`audio-${song.id}`);
+            if (!audioUrl && song.audioBlob) {
+                audioUrl = URL.createObjectURL(song.audioBlob);
+                objectUrlCache.set(`audio-${song.id}`, audioUrl);
+            }
 
+            // Manage poster cover
+            let posterUrl = objectUrlCache.get(`poster-${song.id}`);
+            if (!posterUrl) {
+                if (song.posterBlob) {
+                    posterUrl = URL.createObjectURL(song.posterBlob);
+                    objectUrlCache.set(`poster-${song.id}`, posterUrl);
+                } else if (song.posterPreset && THEME_CONFIG[song.posterPreset]) {
+                    posterUrl = THEME_CONFIG[song.posterPreset].defaultCover;
+                } else {
+                    posterUrl = THEME_CONFIG[currentTheme].defaultCover;
+                }
+            }
 
-document.addEventListener(
-    "keydown",
-    event => {
-
-        if (
-            event.key === "Escape" &&
-            addSongModal.classList.contains(
-                "add-song-modal-visible"
-            )
-        ) {
-            closeAddSongModal();
-        }
-
-    }
-);
-
-
-// ============================================
-// ADD CUSTOM SONG
-// ============================================
-
-addSongForm.addEventListener(
-    "submit",
-    async event => {
-
-        event.preventDefault();
-
-        if (!requireLogin()) {
-            closeAddSongModal();
-            return;
-        }
-
-        const title =
-            newSongName.value.trim();
-
-        const audioFile =
-            newSongFile.files[0];
-
-        const bannerFile =
-            newSongBanner.files[0];
-
-        if (!title || !audioFile || !bannerFile) {
-            return;
-        }
-
-        if (!audioFile.type.startsWith("audio/")) {
-
-            alert(
-                "Please choose a valid audio file."
-            );
-
-            return;
-
-        }
-
-        if (!bannerFile.type.startsWith("image/")) {
-
-            alert(
-                "Please choose a valid image for the banner."
-            );
-
-            return;
-
-        }
-
-        const duplicate =
-            songs.some(
-                song =>
-                    song.title.toLowerCase() ===
-                    title.toLowerCase()
-            );
-
-        if (duplicate) {
-
-            alert(
-                "A song with this name already exists."
-            );
-
-            return;
-
-        }
-
-        const songRecord = {
-            id:
-                `custom-${Date.now()}-${Math.random()
-                    .toString(36)
-                    .slice(2)}`,
-            title: title,
-            audioBlob: audioFile,
-            posterBlob: bannerFile,
-            createdAt: Date.now()
-        };
-
-        try {
-
-            await saveCustomSongToDatabase(
-                songRecord
-            );
-
-            await refreshSongs();
-
-            showAllSongs();
-
-            closeAddSongModal();
-
-        } catch (error) {
-
-            console.error(
-                "Could not add custom song:",
-                error
-            );
-
-            alert(
-                "The song could not be added. Please try again."
-            );
-
-        }
-
-    }
-);
-
-
-// ============================================
-// INITIALIZE
-// ============================================
-
-async function initializeApp() {
-
-    loadUserData();
-
-    // Remove deleted built-in songs from the current user's playlists.
-    const deletedTitles = new Set(
-        originalCards
-            .map((_, index) => ({
-                id: `builtin-${index + 1}`,
-                title: `Song ${index + 1}`
-            }))
-            .filter(song => deletedSongIds.has(song.id))
-            .map(song => song.title.toLowerCase())
-    );
-
-    if (deletedTitles.size > 0) {
-
-        playlists.forEach(playlist => {
-
-            playlist.songs = playlist.songs.filter(
-                song =>
-                    !deletedTitles.has(
-                        song.toLowerCase()
-                    )
-            );
-
+            return {
+                id: song.id,
+                title: song.title || "Untitled Melody",
+                artist: song.artist || "Azure Beats",
+                src: audioUrl,
+                poster: posterUrl,
+                duration: song.duration || "3:00"
+            };
         });
 
-        savePlaylists();
+        libraryCount.textContent = songs.length;
+        applySearchFilter();
+    } catch (err) {
+        console.error("Could not refresh songs:", err);
+    }
+}
 
+function applySearchFilter() {
+    const term = (searchInput.value || "").trim().toLowerCase();
+    clearSearchBtn.style.display = term ? "block" : "none";
+
+    if (!term) {
+        filteredSongs = [...songs];
+    } else {
+        filteredSongs = songs.filter(s =>
+            s.title.toLowerCase().includes(term) ||
+            s.artist.toLowerCase().includes(term)
+        );
     }
 
-    await refreshSongs();
+    renderQueue();
+    updateStageEmptyOrPlaying();
+}
 
-    renderPlaylists();
-    renderAuthButtons();
-    showAllSongs();
+function updateStageEmptyOrPlaying() {
+    if (songs.length === 0) {
+        // App has 0 songs -> Showcase "Choose your Nirvana"
+        nirvanaEmptyState.style.display = "flex";
+        nowPlayingCard.style.display = "none";
+        bottomTitle.textContent = "Choose your Nirvana";
+        bottomArtist.textContent = "Add your first song";
+        bottomCover.src = THEME_CONFIG[currentTheme].defaultCover;
+        bottomPlayBtn.style.opacity = "0.5";
+    } else {
+        nirvanaEmptyState.style.display = "none";
+        nowPlayingCard.style.display = "flex";
+        bottomPlayBtn.style.opacity = "1";
 
+        if (currentSongIndex === -1 && songs.length > 0) {
+            loadSong(0, false);
+        }
+    }
+}
+
+function renderQueue() {
+    queueList.innerHTML = "";
+
+    if (filteredSongs.length === 0) {
+        queueEmpty.style.display = "flex";
+        return;
+    }
+    queueEmpty.style.display = "none";
+
+    filteredSongs.forEach((song, idx) => {
+        const originalIndex = songs.findIndex(s => s.id === song.id);
+        const isActive = originalIndex === currentSongIndex;
+
+        const row = document.createElement("div");
+        row.className = `queue-item ${isActive ? "active" : ""}`;
+
+        // Equalizer animation if playing this track
+        const eqHtml = (isActive && isPlaying)
+            ? `<div class="queue-eq-bars"><span></span><span></span><span></span></div>`
+            : "";
+
+        row.innerHTML = `
+            <img src="${song.poster}" alt="Cover" class="queue-item-thumb">
+            <div class="queue-item-info">
+                <div class="queue-item-title">${song.title}</div>
+                <div class="queue-item-artist">${song.artist}</div>
+            </div>
+            ${eqHtml}
+            <div class="queue-item-actions">
+                <button class="queue-action-btn queue-play-btn" type="button" title="Play">
+                    ${isActive && isPlaying ? "⏸" : "▶"}
+                </button>
+                <button class="queue-action-btn queue-delete-btn" type="button" title="Delete">
+                    🗑
+                </button>
+            </div>
+        `;
+
+        // Dedicated single-purpose buttons on row:
+        const playBtn = row.querySelector(".queue-play-btn");
+        playBtn.addEventListener("click", e => {
+            e.stopPropagation();
+            if (isActive) {
+                togglePlayPause();
+            } else {
+                loadSong(originalIndex, true);
+            }
+        });
+
+        const deleteBtn = row.querySelector(".queue-delete-btn");
+        deleteBtn.addEventListener("click", async e => {
+            e.stopPropagation();
+            if (confirm(`Remove "${song.title}" from your kingdom?`)) {
+                await deleteSong(song.id);
+            }
+        });
+
+        row.addEventListener("click", () => {
+            loadSong(originalIndex, true);
+        });
+
+        queueList.appendChild(row);
+    });
 }
 
 
-initializeApp();
+// ========================================================
+// 6. AUDIO PLAYBACK ENGINE
+// ========================================================
+
+function loadSong(index, autoPlay = true) {
+    if (index < 0 || index >= songs.length) return;
+    currentSongIndex = index;
+    const song = songs[currentSongIndex];
+
+    audioPlayer.src = song.src;
+    audioPlayer.load();
+
+    // Update UI elements
+    stageAlbumArt.src = song.poster;
+    stageTrackTitle.textContent = song.title;
+    stageTrackArtist.textContent = song.artist;
+
+    bottomCover.src = song.poster;
+    bottomTitle.textContent = song.title;
+    bottomArtist.textContent = song.artist;
+
+    stageProgressBar.value = 0;
+    bottomProgressBar.value = 0;
+    stageCurrentTime.textContent = "0:00";
+    bottomCurrentTime.textContent = "0:00";
+
+    updateLikeButtonUI();
+    renderQueue();
+
+    if (autoPlay) {
+        playAudio();
+    } else {
+        pauseAudio();
+    }
+}
+
+function playAudio() {
+    if (currentSongIndex === -1 && songs.length > 0) {
+        loadSong(0, true);
+        return;
+    }
+    audioPlayer.play().then(() => {
+        isPlaying = true;
+        updatePlayIcons(true);
+        renderQueue();
+    }).catch(err => {
+        console.warn("Autoplay blocked or playback error:", err);
+        isPlaying = false;
+        updatePlayIcons(false);
+    });
+}
+
+function pauseAudio() {
+    audioPlayer.pause();
+    isPlaying = false;
+    updatePlayIcons(false);
+    renderQueue();
+}
+
+function togglePlayPause() {
+    if (songs.length === 0) {
+        openAddSongModal();
+        return;
+    }
+    if (isPlaying) {
+        pauseAudio();
+    } else {
+        playAudio();
+    }
+}
+
+function updatePlayIcons(playing) {
+    stagePlayIcon.textContent = playing ? "⏸" : "▶";
+    bottomPlayIcon.textContent = playing ? "⏸" : "▶";
+}
+
+function playNextSong() {
+    if (songs.length === 0) return;
+    if (isShuffle) {
+        const nextIndex = Math.floor(Math.random() * songs.length);
+        loadSong(nextIndex, true);
+        return;
+    }
+    const nextIndex = (currentSongIndex + 1) % songs.length;
+    loadSong(nextIndex, true);
+}
+
+function playPrevSong() {
+    if (songs.length === 0) return;
+    if (audioPlayer.currentTime > 3) {
+        audioPlayer.currentTime = 0;
+        return;
+    }
+    const prevIndex = (currentSongIndex - 1 + songs.length) % songs.length;
+    loadSong(prevIndex, true);
+}
+
+function toggleShuffle() {
+    isShuffle = !isShuffle;
+    stageShuffleBtn.classList.toggle("active", isShuffle);
+    bottomShuffleBtn.classList.toggle("active", isShuffle);
+}
+
+function toggleRepeat() {
+    if (repeatMode === "none") {
+        repeatMode = "all";
+        stageRepeatBtn.classList.add("active");
+        bottomRepeatBtn.classList.add("active");
+        stageRepeatBtn.title = "Repeat: All";
+        bottomRepeatBtn.title = "Repeat: All";
+    } else if (repeatMode === "all") {
+        repeatMode = "one";
+        stageRepeatBtn.classList.add("active");
+        bottomRepeatBtn.classList.add("active");
+        stageRepeatBtn.title = "Repeat: One";
+        bottomRepeatBtn.title = "Repeat: One";
+    } else {
+        repeatMode = "none";
+        stageRepeatBtn.classList.remove("active");
+        bottomRepeatBtn.classList.remove("active");
+        stageRepeatBtn.title = "Repeat: Off";
+        bottomRepeatBtn.title = "Repeat: Off";
+    }
+}
+
+function formatTime(seconds) {
+    if (!seconds || isNaN(seconds)) return "0:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
+}
+
+// Audio Player Events
+audioPlayer.addEventListener("timeupdate", () => {
+    if (!audioPlayer.duration) return;
+    const current = audioPlayer.currentTime;
+    const total = audioPlayer.duration;
+    const percent = (current / total) * 100;
+
+    stageProgressBar.value = percent;
+    bottomProgressBar.value = percent;
+    stageCurrentTime.textContent = formatTime(current);
+    bottomCurrentTime.textContent = formatTime(current);
+});
+
+audioPlayer.addEventListener("loadedmetadata", () => {
+    const total = audioPlayer.duration;
+    stageDuration.textContent = formatTime(total);
+    bottomDuration.textContent = formatTime(total);
+});
+
+audioPlayer.addEventListener("ended", () => {
+    if (repeatMode === "one") {
+        audioPlayer.currentTime = 0;
+        playAudio();
+    } else if (repeatMode === "all" || currentSongIndex < songs.length - 1) {
+        playNextSong();
+    } else {
+        pauseAudio();
+    }
+});
+
+// Seek Sliders
+function handleSeek(e) {
+    if (!audioPlayer.duration) return;
+    const seekPercent = e.target.value;
+    audioPlayer.currentTime = (seekPercent / 100) * audioPlayer.duration;
+}
+stageProgressBar.addEventListener("input", handleSeek);
+bottomProgressBar.addEventListener("input", handleSeek);
+
+// Volume Controls
+volumeSlider.addEventListener("input", e => {
+    const val = e.target.value / 100;
+    audioPlayer.volume = val;
+    audioPlayer.muted = false;
+    muteToggleBtn.textContent = val === 0 ? "🔇" : val > 0.5 ? "🔊" : "🔉";
+});
+
+muteToggleBtn.addEventListener("click", () => {
+    audioPlayer.muted = !audioPlayer.muted;
+    muteToggleBtn.textContent = audioPlayer.muted ? "🔇" : "🔊";
+});
+
+async function deleteSong(songId) {
+    await deleteSongFromDatabase(songId);
+    if (currentSongIndex >= 0 && songs[currentSongIndex]?.id === songId) {
+        pauseAudio();
+        currentSongIndex = -1;
+    }
+    await refreshSongList();
+}
+
+
+// ========================================================
+// 7. ADD SONG MODAL & FILE HANDLING
+// ========================================================
+
+// Cover Preset Selection
+coverPresetOptions.forEach(opt => {
+    opt.addEventListener("click", () => {
+        coverPresetOptions.forEach(o => o.classList.remove("selected"));
+        opt.classList.add("selected");
+        opt.querySelector("input").checked = true;
+    });
+});
+
+newSongAudio.addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (file) {
+        audioDropLabel.textContent = `Selected: ${file.name}`;
+        if (!newSongName.value) {
+            // Auto fill song name from filename (stripping extension)
+            const clean = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+            newSongName.value = clean.charAt(0).toUpperCase() + clean.slice(1);
+        }
+    }
+});
+
+newSongBanner.addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (file) {
+        bannerDropLabel.textContent = `Selected: ${file.name}`;
+    }
+});
+
+addSongForm.addEventListener("submit", async e => {
+    e.preventDefault();
+
+    const title = newSongName.value.trim();
+    const artist = newSongArtist.value.trim() || "Azure Beats";
+    const audioFile = newSongAudio.files[0];
+    const bannerFile = newSongBanner.files[0];
+    const selectedPreset = document.querySelector('input[name="coverPreset"]:checked')?.value || currentTheme;
+
+    if (!title || !audioFile) {
+        alert("Please provide a title and audio file.");
+        return;
+    }
+
+    const songRecord = {
+        id: `song-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        title,
+        artist,
+        audioBlob: audioFile,
+        posterBlob: bannerFile || null,
+        posterPreset: selectedPreset,
+        createdAt: Date.now()
+    };
+
+    try {
+        await saveSongToDatabase(songRecord);
+        closeAddSongModal();
+        await refreshSongList();
+
+        // Immediately load and play the newly added song!
+        const newIndex = songs.findIndex(s => s.id === songRecord.id);
+        if (newIndex >= 0) {
+            loadSong(newIndex, true);
+        }
+    } catch (err) {
+        console.error("Could not add song:", err);
+        alert("Failed to save song to kingdom.");
+    }
+});
+
+// Drag & drop support on Nirvana Dropzone
+function handleDragOver(e) {
+    e.preventDefault();
+    nirvanaDropzone.classList.add("drag-over");
+}
+function handleDragLeave() {
+    nirvanaDropzone.classList.remove("drag-over");
+}
+function handleDrop(e) {
+    e.preventDefault();
+    nirvanaDropzone.classList.remove("drag-over");
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith("audio/")) {
+        openAddSongModal();
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        newSongAudio.files = dataTransfer.files;
+        audioDropLabel.textContent = `Selected: ${file.name}`;
+        const clean = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+        newSongName.value = clean.charAt(0).toUpperCase() + clean.slice(1);
+    }
+}
+
+nirvanaDropzone.addEventListener("dragover", handleDragOver);
+nirvanaDropzone.addEventListener("dragleave", handleDragLeave);
+nirvanaDropzone.addEventListener("drop", handleDrop);
+
+
+// ========================================================
+// 8. EVENT LISTENERS (Strict Single-Purpose Actions)
+// ========================================================
+
+// Landing Nav / Hero Buttons
+landingSignupNavBtn.addEventListener("click", openSignupModal);
+landingLoginNavBtn.addEventListener("click", openLoginModal);
+heroSignupBtn.addEventListener("click", openSignupModal);
+heroLoginBtn.addEventListener("click", openLoginModal);
+heroExploreBtn.addEventListener("click", () => {
+    isGuestMode = true;
+    showAppScreen();
+});
+
+// Floating UI Cards on Landing Screen: Click to preview theme & enter
+floatingCards.forEach(card => {
+    card.addEventListener("click", () => {
+        const theme = card.dataset.targetTheme;
+        applyTheme(theme);
+        isGuestMode = true;
+        showAppScreen();
+    });
+});
+
+// Search Filter
+searchInput.addEventListener("input", applySearchFilter);
+clearSearchBtn.addEventListener("click", () => {
+    searchInput.value = "";
+    applySearchFilter();
+    searchInput.focus();
+});
+
+// Single-purpose Play/Pause Buttons
+stagePlayBtn.addEventListener("click", togglePlayPause);
+bottomPlayBtn.addEventListener("click", togglePlayPause);
+
+// Single-purpose Next/Prev Buttons
+stageNextBtn.addEventListener("click", playNextSong);
+bottomNextBtn.addEventListener("click", playNextSong);
+stagePrevBtn.addEventListener("click", playPrevSong);
+bottomPrevBtn.addEventListener("click", playPrevSong);
+
+// Single-purpose Shuffle & Repeat Buttons
+stageShuffleBtn.addEventListener("click", toggleShuffle);
+bottomShuffleBtn.addEventListener("click", toggleShuffle);
+stageRepeatBtn.addEventListener("click", toggleRepeat);
+bottomRepeatBtn.addEventListener("click", toggleRepeat);
+
+// Single-purpose Like Buttons
+stageLikeBtn.addEventListener("click", toggleLikeCurrentSong);
+bottomLikeBtn.addEventListener("click", toggleLikeCurrentSong);
+
+// Dedicated Add Song Openers
+nirvanaAddBtn.addEventListener("click", openAddSongModal);
+sidebarAddSongBtn.addEventListener("click", openAddSongModal);
+queueAddSongBtn.addEventListener("click", openAddSongModal);
+queueEmptyAddBtn.addEventListener("click", openAddSongModal);
+secondaryAddSongBtn.addEventListener("click", openAddSongModal);
+
+// Theme Switcher Buttons
+openThemePickerBtn.addEventListener("click", openThemePicker);
+bottomThemeBtn.addEventListener("click", openThemePicker);
+closeThemeModalBtn.addEventListener("click", closeThemePicker);
+themePickerBackdrop.addEventListener("click", closeThemePicker);
+
+// Theme Selection Cards inside Modal
+themeSelectCards.forEach(card => {
+    card.addEventListener("click", () => {
+        const themeId = card.dataset.themeId;
+        applyTheme(themeId);
+    });
+});
+
+confirmThemeBtn.addEventListener("click", () => {
+    closeThemePicker();
+});
+
+// Add Song Modal Closer
+closeAddSongBtn.addEventListener("click", closeAddSongModal);
+cancelAddSongBtn.addEventListener("click", closeAddSongModal);
+addSongBackdrop.addEventListener("click", closeAddSongModal);
+
+// Auth Modal Controls
+closeSignupBtn.addEventListener("click", closeSignupModal);
+signupBackdrop.addEventListener("click", closeSignupModal);
+switchToLoginBtn.addEventListener("click", () => {
+    closeSignupModal();
+    openLoginModal();
+});
+
+closeLoginBtn.addEventListener("click", closeLoginModal);
+loginBackdrop.addEventListener("click", closeLoginModal);
+switchToSignupBtn.addEventListener("click", () => {
+    closeLoginModal();
+    openSignupModal();
+});
+
+signupForm.addEventListener("submit", async e => {
+    e.preventDefault();
+    if (signupPassword.value !== signupConfirmPassword.value) {
+        setAuthMessage(signupMessage, "Passwords do not match.");
+        return;
+    }
+    try {
+        await createAccount(signupName.value, signupEmail.value, signupPassword.value);
+    } catch (err) {
+        setAuthMessage(signupMessage, err.message);
+    }
+});
+
+loginForm.addEventListener("submit", async e => {
+    e.preventDefault();
+    try {
+        await loginUser(loginEmail.value, loginPassword.value);
+    } catch (err) {
+        setAuthMessage(loginMessage, err.message);
+    }
+});
+
+// Sidebar Navigation
+navHome.addEventListener("click", () => {
+    stageSecondaryView.style.display = "none";
+    setActiveNavItem(navHome);
+    applySearchFilter();
+});
+
+navExplore.addEventListener("click", () => {
+    showSecondaryGrid("Explore Realms & Anthems", songs);
+    setActiveNavItem(navExplore);
+});
+
+navLibrary.addEventListener("click", () => {
+    showSecondaryGrid("Your Library", songs);
+    setActiveNavItem(navLibrary);
+});
+
+navPlaylists.addEventListener("click", () => {
+    showSecondaryGrid("Playlists", songs);
+    setActiveNavItem(navPlaylists);
+});
+
+navLiked.addEventListener("click", () => {
+    const likedList = songs.filter(s => likedSongIds.has(s.id));
+    showSecondaryGrid("Liked Songs", likedList);
+    setActiveNavItem(navLiked);
+});
+
+backToPlayerBtn.addEventListener("click", () => {
+    stageSecondaryView.style.display = "none";
+    setActiveNavItem(navHome);
+});
+
+function setActiveNavItem(activeBtn) {
+    [navHome, navExplore, navLibrary, navPlaylists, navLiked].forEach(btn => {
+        btn.classList.toggle("active", btn === activeBtn);
+    });
+}
+
+function showSecondaryGrid(title, songArray) {
+    stageSecondaryView.style.display = "block";
+    secondaryViewTitle.textContent = title;
+    secondarySongGrid.innerHTML = "";
+
+    if (songArray.length === 0) {
+        secondarySongGrid.innerHTML = `<p style="color: var(--text-muted); font-size: 13px;">No tracks found in this category.</p>`;
+        return;
+    }
+
+    songArray.forEach(song => {
+        const card = document.createElement("div");
+        card.className = "grid-song-card";
+        card.innerHTML = `
+            <img src="${song.poster}" alt="Cover" class="grid-song-thumb">
+            <div class="grid-song-title">${song.title}</div>
+            <div class="grid-song-artist">${song.artist}</div>
+        `;
+        card.addEventListener("click", () => {
+            const origIndex = songs.findIndex(s => s.id === song.id);
+            if (origIndex >= 0) {
+                stageSecondaryView.style.display = "none";
+                setActiveNavItem(navHome);
+                loadSong(origIndex, true);
+            }
+        });
+        secondarySongGrid.appendChild(card);
+    });
+}
+
+
+// ========================================================
+// 9. RETRO CANVAS STARFIELD (Landing Page)
+// ========================================================
+
+function initStarfield() {
+    if (!starfieldCanvas) return;
+    const ctx = starfieldCanvas.getContext("2d");
+    let width = (starfieldCanvas.width = window.innerWidth);
+    let height = (starfieldCanvas.height = window.innerHeight);
+
+    window.addEventListener("resize", () => {
+        width = starfieldCanvas.width = window.innerWidth;
+        height = starfieldCanvas.height = window.innerHeight;
+    });
+
+    const stars = Array.from({ length: 80 }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        size: Math.random() > 0.7 ? 3 : 2,
+        color: ["#ffd166", "#ffffff", "#48c774", "#00d2ff"][Math.floor(Math.random() * 4)],
+        speed: 0.2 + Math.random() * 0.4
+    }));
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+        stars.forEach(s => {
+            ctx.fillStyle = s.color;
+            ctx.fillRect(Math.floor(s.x), Math.floor(s.y), s.size, s.size);
+            s.y += s.speed;
+            if (s.y > height) {
+                s.y = 0;
+                s.x = Math.random() * width;
+            }
+        });
+        requestAnimationFrame(animate);
+    }
+    animate();
+}
+
+
+// ========================================================
+// 10. INITIALIZATION
+// ========================================================
+
+function init() {
+    initStarfield();
+    applyTheme(currentUser ? (currentUser.theme || currentTheme) : currentTheme);
+
+    if (currentUser) {
+        showAppScreen();
+    } else {
+        showLandingScreen();
+    }
+}
+
+init();
