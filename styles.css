@@ -231,6 +231,21 @@ html, body {
     border-radius: 24px;
 }
 
+.landing-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 24px 32px;
+    text-align: center;
+    z-index: 20;
+    pointer-events: none;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-muted);
+    letter-spacing: 0.2px;
+}
+
 
 /* ========================================================
    2. MAIN MUSIC APP CONTAINER & DESKTOP LAYOUT
@@ -1587,6 +1602,11 @@ html, body {
 
     .landing-top-bar {
         padding: 20px 20px;
+    }
+
+    .landing-footer {
+        padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
+        font-size: 11px;
     }
 
     .app-main-layout {
